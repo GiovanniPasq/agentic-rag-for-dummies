@@ -20,8 +20,8 @@ DENSE_MODEL = "sentence-transformers/all-mpnet-base-v2"
 # Sparse Embeddings (for keyword matching)
 SPARSE_MODEL = "Qdrant/bm25"
 # LLM (Example with Ollama)
-LLM_MODEL = "qwen3:4b-instruct"
-LLM_TEMPERATURE = 0
+LLM_MODEL = "qwen3:4b-instruct-2507-q4_K_M"
+LLM_TEMPERATURE = 0.1
 # For Google Gemini (uncomment if needed)
 # os.environ["GOOGLE_API_KEY"] = "your-api-key-here"
 # GEMINI_MODEL = "gemini-2.0-flash-exp"
