@@ -118,7 +118,7 @@ This system is **provider-agnostic** - you can use any LLM supported by LangChai
 
 ```bash
 # Install Ollama from https://ollama.com
-ollama pull qwen3:4b-instruct
+ollama pull qwen3:4b-instruct-2507-q4_K_M
 ```
 
 **Python code:**
