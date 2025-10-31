@@ -706,7 +706,7 @@ The easiest way to get started:
 5. The chat interface will appear at the end
 
 **Running Locally (Jupyter/VSCode):**
-1. Install dependencies first: `pip install -r requirements.txt`
+1. Install dependencies first (available inside the project folder): `pip install -r requirements.txt`
 2. Open the notebook in your preferred environment
 3. Add your `.md` files to the `docs/` folder (sample files available in `sample_files/`)
 4. Run all cells from top to bottom
@@ -727,6 +727,7 @@ source venv/bin/activate
 .\venv\Scripts\activate
 
 # Install packages
+cd project
 pip install -r requirements.txt
 ```
 
