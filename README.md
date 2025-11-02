@@ -13,7 +13,8 @@
   <a href="#how-it-works">How It Works</a> •
   <a href="#llm-provider-configuration">LLM Providers</a> •
   <a href="#implementation">Implementation</a> •
-  <a href="#installation--usage">Installation & Usage</a>
+  <a href="#installation--usage">Installation & Usage</a> •
+  <a href="#upcoming-features">Upcoming Features</a>
 </p>
 
 <p align="center">
@@ -29,6 +30,10 @@
 
 <p align="center">
   <strong>If you like this project, a star ⭐️ would mean a lot :)</strong>
+</p>
+
+<p align="center">
+  <em>🚀 New features coming end of November: Enhanced PDF processing guide + End-to-end Gradio interface</em>
 </p>
 
 ---
@@ -778,6 +783,18 @@ Agent: [Retrieves and answers with specific information]
 Need to convert PDFs? Use this companion notebook:
 
 📘 **[PDF to Markdown Converter](https://colab.research.google.com/gist/GiovanniPasq/fdea06b09b396fe626156e4f38b6e091/pdf_to_md.ipynb)**
+
+---
+
+## Upcoming Features
+
+| Feature | Release | Description |
+|---------|---------|-------------|
+| 📄 **Enhanced PDF Notebook** | End of Nov 2025 | Additional guidance with library comparisons, recommendations for different document types, and links to useful tools and repositories |
+| 🎯 **End-to-End Gradio Interface** | End of Nov 2025 | Fully automated pipeline: Select PDF folder → Convert to Markdown → Chunk documents → Index to vector DB → Start chatting. Zero manual steps, perfect for quick demos and production deployments |
+| 🤖 **Multi-Agent Map-Reduce** | End of Dec 2025 | Parallel processing architecture for complex queries. Query decomposition into sub-questions, specialized agents for concurrent retrieval, map-reduce synthesis for comprehensive answers across multiple documents |
+
+---
 
 ## License
 
