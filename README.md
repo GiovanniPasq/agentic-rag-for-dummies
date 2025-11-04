@@ -783,7 +783,7 @@ Agent: [Retrieves and answers with specific information]
 
 Need to convert PDFs? Use this companion notebook:
 
-📘 **[PDF to Markdown Converter](https://colab.research.google.com/gist/GiovanniPasq/fdea06b09b396fe626156e4f38b6e091/pdf_to_md.ipynb)**
+📘 **[PDF to Markdown Converter](https://colab.research.google.com/gist/GiovanniPasq/a5f749f9f9f03f0ca90f8b480ec952ac/pdf_to_md.ipynb)**
 
 ---
 
