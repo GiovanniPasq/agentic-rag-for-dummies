@@ -33,7 +33,8 @@
 </p>
 
 <p align="center">
-  <em>🚀 New features coming end of November: Enhanced PDF processing guide + End-to-end Gradio interface</em>
+  <em>✨ New: Comprehensive PDF to Markdown conversion guide with tool comparison and VLM approaches</em><br>
+  <em>🚀 New feature coming end of November: End-to-end Gradio interface for interactive RAG system</em>
 </p>
 
 ---
