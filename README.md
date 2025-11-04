@@ -32,9 +32,9 @@
   <strong>If you like this project, a star ⭐️ would mean a lot :)</strong>
 </p>
 
-<p align="center">
-  <em>✨ New: Comprehensive PDF to Markdown conversion guide with tool comparison and VLM approaches</em><br>
-  <em>🚀 New feature coming end of November: End-to-end Gradio interface for interactive RAG system</em>
+<p align="center" style="line-height: 1.6;">
+  <em>✨ <strong>New:</strong> Comprehensive PDF → Markdown conversion guide, including tool comparisons and VLM-based approaches.</em><br>
+  <em>🚀 <strong>Coming end of November:</strong> End-to-end Gradio interface for an interactive RAG pipeline.</em>
 </p>
 
 ---
@@ -789,11 +789,11 @@ Need to convert PDFs? Use this companion notebook:
 
 ## Upcoming Features
 
-| Feature | Release | Description |
-|---------|---------|-------------|
-| 📄 **Enhanced PDF Notebook** | End of Nov 2025 | Additional guidance with library comparisons, recommendations for different document types, and links to useful tools and repositories |
-| 🎯 **End-to-End Gradio Interface** | End of Nov 2025 | Fully automated pipeline: Select PDF folder → Convert to Markdown → Chunk documents → Index to vector DB → Start chatting. Zero manual steps, perfect for quick demos and production deployments |
-| 🤖 **Multi-Agent Map-Reduce** | End of Dec 2025 | Parallel processing architecture for complex queries. Query decomposition into sub-questions, specialized agents for concurrent retrieval, map-reduce synthesis for comprehensive answers across multiple documents |
+| Feature | Release | Description | Status |
+|---------|---------|-------------|--------|
+| 📄 **Enhanced PDF Notebook** | Released on 4 Nov 2025 | Additional guidance with library comparisons and useful repositories | ✅ Implemented |
+| 🎯 **End-to-End Gradio Interface** | End of Nov 2025 | Fully automated pipeline | ⌛ In Progress |
+| 🤖 **Multi-Agent Map-Reduce** | End of Dec 2025 | Parallel processing architecture | 🛠️ Planned |
 
 ---
 
