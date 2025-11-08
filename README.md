@@ -34,7 +34,7 @@
 
 <p align="center" style="line-height: 1.6;">
   <em>✨ <strong>New:</strong> Comprehensive PDF → Markdown conversion guide, including tool comparisons and VLM-based approaches.</em><br>
-  <em>🚀 <strong>**Coming end of November:** <a href="#end-to-end-gradio-interface">End-to-end Gradio interface</a> for an interactive RAG pipeline.</em>
+  <em>🚀 <strong>Coming end of November: <a href="#end-to-end-gradio-interface">End-to-end Gradio interface</a> for an interactive RAG pipeline.</em>
 </p>
 
 ---
