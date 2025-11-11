@@ -41,7 +41,6 @@
 <p align="center">
   <img src="assets/coming-soon.gif" width="650px" alt="Coming Soon Demo">
 </p>
----
 
 ## Why This Repo?
 
