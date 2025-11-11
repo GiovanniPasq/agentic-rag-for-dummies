@@ -25,7 +25,7 @@
 </p>
 
 <p align="center">
-  <img alt="Agentic RAG Demo" src="assets/newDemo.gif" width="650px">
+  <img alt="Agentic RAG Demo" src="assets/demo.gif" width="650px">
 </p>
 
 <p align="center">
