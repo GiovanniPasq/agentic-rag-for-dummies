@@ -33,8 +33,13 @@
 </p>
 
 <p align="center" style="line-height: 1.6;">
-  <em>✨ <strong>New:</strong> Comprehensive PDF → Markdown conversion guide, including tool comparisons and VLM-based approaches.</em><br>
-  <em>🚀 <strong>Coming end of November: <a href="#end-to-end-gradio-interface">End-to-end Gradio interface</a> for an interactive RAG pipeline.</em>
+  <em>✨ <strong>New:</strong> Comprehensive PDF → Markdown conversion guide, including tool comparisons and VLM-based approaches.</em><br><br>
+</p>
+
+### 🚀 Coming end of November: End-to-end Gradio interface for an interactive RAG pipeline (demo below).
+
+<p align="center">
+  <img alt="Coming Soon - Gradio UI" src="assets/coming-soon.gif" width="650px">
 </p>
 
 ---
@@ -794,13 +799,6 @@ Need to convert PDFs? Use this companion notebook:
 | 📄 **Enhanced PDF Notebook** | Released on 4 Nov 2025 | Additional guidance with library comparisons and useful repositories | ✅ Implemented |
 | 🎯 **End-to-End Gradio Interface** | End of Nov 2025 | Fully automated pipeline | ⌛ In Progress |
 | 🤖 **Multi-Agent Map-Reduce** | End of Dec 2025 | Parallel processing architecture | 🛠️ Planned |
-
-### End to End Gradio Interface
-
-🚀 Coming soon
-<p align="center">
-<img alt="Agentic RAG for Dummies Logo" src="assets/demoGradio.gif" width="550px">
-</p>
 
 ---
 
