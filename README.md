@@ -1,5 +1,5 @@
 <p align="center">
-<img alt="Agentic RAG for Dummies Logo" src="assets/logo.png" width="300px">
+<img alt="Agentic RAG for Dummies Logo" src="assets/logo.png" width="350px">
 </p>
 
 <h1 align="center">Agentic RAG for Dummies</h1>
