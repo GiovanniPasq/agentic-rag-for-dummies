@@ -36,7 +36,7 @@
   <em>✨ <strong>New:</strong> Comprehensive PDF → Markdown conversion guide, including tool comparisons and VLM-based approaches.</em><br><br>
 </p>
 
-<h3 align="center">🚀 Coming end of November: End-to-end Gradio interface for an interactive RAG pipeline</h3>
+<h3 align="center">🚀 Coming November 25: End-to-end Gradio interface for an interactive RAG pipeline</h3>
 
 <p align="center">
   <img src="assets/coming-soon.gif" width="650px" alt="Coming Soon Demo">
@@ -795,7 +795,7 @@ Need to convert PDFs? Use this companion notebook:
 | Feature | Release | Description | Status |
 |---------|---------|-------------|--------|
 | 📄 **Enhanced PDF Notebook** | Released on 4 Nov 2025 | Additional guidance with library comparisons and useful repositories | ✅ Implemented |
-| 🎯 **End-to-End Gradio Interface** | End of Nov 2025 | Fully automated pipeline | ⌛ In Progress |
+| 🎯 **End-to-End Gradio Interface** | Nov 25, 2025 | Fully automated pipeline | ⌛ In Progress |
 | 🤖 **Multi-Agent Map-Reduce** | End of Dec 2025 | Parallel processing architecture | 🛠️ Planned |
 
 ---
