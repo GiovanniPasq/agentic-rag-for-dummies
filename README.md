@@ -33,13 +33,9 @@
 </p>
 
 <p align="center" style="line-height: 1.6;">
-  <em>✨ <strong>New:</strong> Comprehensive PDF → Markdown conversion guide, including tool comparisons and VLM-based approaches.</em><br><br>
-</p>
-
-<h3 align="center">🚀 Coming November 25: End-to-end Gradio interface for a complete interactive RAG pipeline</h3>
-
-<p align="center">
-  <img src="assets/coming-soon.gif" width="650px" alt="Coming Soon Demo">
+  <em>✨ <strong>New:</strong></em><br>
+  <em>• Comprehensive PDF → Markdown conversion guide, including tool comparisons and VLM-based approaches</em><br>
+  <em>• End-to-end Gradio interface for a complete interactive RAG pipeline</em>
 </p>
 
 ## Why This Repo?
@@ -85,7 +81,7 @@ Agent Reasoning → Search Child Chunks → Evaluate Relevance →
 
 Before processing any query, the system:
 1. **Analyzes recent conversation history** to extract key topics and context
-2. **Summarizes relevant information** from previous exchanges (2-3 sentences max)
+2. **Summarizes relevant information** from previous exchanges
 3. **Maintains conversational continuity** across multiple questions
 
 ### Stage 2: Query Clarification
@@ -135,7 +131,7 @@ ollama pull qwen3:4b-instruct-2507-q4_K_M
 ```python
 from langchain_ollama import ChatOllama
 
-llm = ChatOllama(model="qwen3:4b-instruct-2507-q4_K_M", temperature=0.1)
+llm = ChatOllama(model="qwen3:4b-instruct-2507-q4_K_M", temperature=0)
 ```
 
 ---
@@ -156,7 +152,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 
 # Set your Google API key
 os.environ["GOOGLE_API_KEY"] = "your-api-key-here"
-llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash-exp", temperature=0.1)
+llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash-exp", temperature=0)
 ```
 
 ---
@@ -177,7 +173,7 @@ from langchain_openai import ChatOpenAI
 
 # Set your OpenAI API key
 os.environ["OPENAI_API_KEY"] = "your-api-key-here"
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 ```
 
 ---
@@ -198,16 +194,14 @@ from langchain_anthropic import ChatAnthropic
 
 # Set your Anthropic API key
 os.environ["ANTHROPIC_API_KEY"] = "your-api-key-here"
-llm = ChatAnthropic(model="claude-3-5-sonnet-20241022", temperature=0.1)
+llm = ChatAnthropic(model="claude-3-5-sonnet-20241022", temperature=0)
 ```
 
 ---
 
 ### Important Notes
 
-- **Temperature 0.1-0.2** is used for consistent outputs while allowing slight reasoning flexibility
 - **All providers** work with the exact same code - only the LLM initialization changes
-- **API keys** should be stored securely using environment variables
 - **Cost considerations:** Cloud providers charge per token, while Ollama is free but requires local compute
 
 **💡 Recommendation:** Start with Ollama for development, then switch to Google Gemini or OpenAI for production.
@@ -228,7 +222,8 @@ from langchain_qdrant.fastembed_sparse import FastEmbedSparse
 from qdrant_client import QdrantClient
 
 # Configuration
-DOCS_DIR = "docs"  # Directory containing your .md files
+DOCS_DIR = "docs"  # Directory containing your pdfs files
+MARKDOWN_DIR = "markdown" # Directory containing the pdfs converted to markdown
 PARENT_STORE_PATH = "parent_store"  # Directory for parent chunk JSON files
 CHILD_COLLECTION = "document_child_chunks"
 
@@ -278,8 +273,60 @@ def ensure_collection(collection_name):
         print(f"✓ Created collection: {collection_name}")
     else:
         print(f"✓ Collection already exists: {collection_name}")
+```
 
-ensure_collection(CHILD_COLLECTION)
+---
+
+### Step 3: PDFs to Markdown
+
+Convert the PDFs to Markdown. For more details about other techniques use this companion notebook:
+
+📘 **[PDF to Markdown Converter](https://colab.research.google.com/gist/GiovanniPasq/a5f749f9f9f03f0ca90f8b480ec952ac/pdf_to_md.ipynb)**
+
+```python
+import os
+import pymupdf.layout
+import pymupdf4llm
+from pathlib import Path
+import glob
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+def pdf_to_markdown(pdf_path, output_dir):
+    doc = pymupdf.open(pdf_path)
+    md = pymupdf4llm.to_markdown(doc, header=False, footer=False, page_separators=True, ignore_images=True, write_images=False, image_path=None)
+    md_cleaned = md.encode('utf-8', errors='surrogatepass').decode('utf-8', errors='ignore')
+    output_path = Path(output_dir) / Path(doc.name).stem
+    Path(output_path).with_suffix(".md").write_bytes(md_cleaned.encode('utf-8'))
+
+def pdfs_to_markdowns(path_pattern, overwrite: bool = False):
+    output_dir = Path(MARKDOWN_DIR)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    for pdf_path in map(Path, glob.glob(path_pattern)):
+        md_path = (output_dir / pdf_path.stem).with_suffix(".md")
+        if overwrite or not md_path.exists():
+            pdf_to_markdown(pdf_path, output_dir)
+
+pdfs_to_markdowns("./docs/*.pdf")
+```
+
+---
+
+### Step 4: Hierarchical Document Indexing
+
+Process documents with the Parent/Child splitting strategy.
+
+```python
+import glob
+import json
+from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
+
+if client.collection_exists(CHILD_COLLECTION):
+    print(f"Removing existing Qdrant collection: {CHILD_COLLECTION}")
+    client.delete_collection(CHILD_COLLECTION)
+else:
+    ensure_collection(CHILD_COLLECTION)
 
 # Initialize vector store for child chunks
 child_vector_store = QdrantVectorStore(
@@ -290,80 +337,98 @@ child_vector_store = QdrantVectorStore(
     retrieval_mode=RetrievalMode.HYBRID,
     sparse_vector_name="sparse"
 )
-```
-
----
-
-### Step 3: Hierarchical Document Indexing
-
-Process documents with the Parent/Child splitting strategy.
-
-```python
-import glob
-import json
-from langchain_text_splitters import (MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter)
 
 def index_documents():
-    """Index documents using hierarchical Parent/Child strategy"""
-    
-    # Parent splitter: by Markdown headers
-    headers_to_split_on = [("#", "H1"), ("##", "H2"), ("###", "H3")]
-    parent_splitter = MarkdownHeaderTextSplitter( headers_to_split_on=headers_to_split_on, strip_headers=False)
-    
-    # Child splitter: by character count
+    headers_to_split_on = [("#", "H1"), ("##", "H2"),("###", "H3")]
+    parent_splitter = MarkdownHeaderTextSplitter(headers_to_split_on=headers_to_split_on, strip_headers=False)
     child_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
-    
-    all_child_chunks = []
-    all_parent_pairs = []
-    
-    # Process each document
-    md_files = sorted(glob.glob(os.path.join(DOCS_DIR, "*.md")))
+
+    MIN_PARENT_SIZE = 500 * 4
+
+    all_parent_pairs, all_child_chunks = [], []
+
+    md_files = sorted(glob.glob(os.path.join(MARKDOWN_DIR, "*.md")))
     if not md_files:
+        print(f"⚠️  No .md files found in {MARKDOWN_DIR}/")
         return
-    
+
     for doc_path_str in md_files:
         doc_path = Path(doc_path_str)
-        
-        with open(doc_path, "r", encoding="utf-8") as f:
-            md_text = f.read()
-        
-        # Split into parent chunks
+        print(f"📄 Processing: {doc_path.name}")
+
+        try:
+            with open(doc_path, "r", encoding="utf-8") as f:
+                md_text = f.read()
+        except Exception as e:
+            print(f"❌ Error reading {doc_path.name}: {e}")
+            continue
+
         parent_chunks = parent_splitter.split_text(md_text)
-        
-        for i, p_chunk in enumerate(parent_chunks):
-            p_chunk.metadata["source"] = str(doc_path)
+
+        merged_parents = []
+        current = None
+
+        for chunk in parent_chunks:
+            if current is None:
+                current = chunk
+            else:
+                current.page_content += "\n\n" + chunk.page_content
+
+                for k, v in chunk.metadata.items():
+                    if k in current.metadata:
+                        current.metadata[k] = f"{current.metadata[k]} -> {v}"
+                    else:
+                        current.metadata[k] = v
+
+            if len(current.page_content) >= MIN_PARENT_SIZE:
+                merged_parents.append(current)
+                current = None
+
+        if current:
+            merged_parents.append(current)
+
+        for i, p_chunk in enumerate(merged_parents):
             parent_id = f"{doc_path.stem}_parent_{i}"
-            p_chunk.metadata["parent_id"] = parent_id
-            
+
+            p_chunk.metadata.update({"source": doc_path.stem + ".pdf", "parent_id": parent_id})
+
             all_parent_pairs.append((parent_id, p_chunk))
-            child_chunks = child_splitter.split_documents([p_chunk])
-            all_child_chunks.extend(child_chunks)
-    
-    # Save child chunks to Qdrant
+
+            children = child_splitter.split_documents([p_chunk])
+            all_child_chunks.extend(children)
+
     if all_child_chunks:
-        child_vector_store.add_documents(all_child_chunks)
-    
-    # Save parent chunks to JSON files
-    if all_parent_pairs:
-        for item in os.listdir(PARENT_STORE_PATH):
-            os.remove(os.path.join(PARENT_STORE_PATH, item))
-        
-        for parent_id, doc in all_parent_pairs:
-            doc_dict = {
-                "page_content": doc.page_content,
-                "metadata": doc.metadata
-            }
-            file_path = os.path.join(PARENT_STORE_PATH, f"{parent_id}.json")
-            with open(file_path, "w", encoding="utf-8") as f:
-                json.dump(doc_dict, f, ensure_ascii=False, indent=2)
-            
-# Run indexing
+        print(f"\n🔍 Indexing {len(all_child_chunks)} child chunks into Qdrant...")
+        try:
+            child_vector_store.add_documents(all_child_chunks)
+            print("✓ Child chunks indexed successfully")
+        except Exception as e:
+            print(f"❌ Error indexing child chunks: {e}")
+            return
+    else:
+        print("⚠️ No child chunks to index")
+        return
+
+    print(f"💾 Saving {len(all_parent_pairs)} parent chunks to JSON...")
+
+    for item in os.listdir(PARENT_STORE_PATH):
+        os.remove(os.path.join(PARENT_STORE_PATH, item))
+
+    for parent_id, doc in all_parent_pairs:
+        doc_dict = {
+            "page_content": doc.page_content,
+            "metadata": doc.metadata
+        }
+        filepath = os.path.join(PARENT_STORE_PATH, f"{parent_id}.json")
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(doc_dict, f, ensure_ascii=False, indent=2)
+
 index_documents()
 ```
 
 ---
 
-### Step 4: Define Agent Tools
+### Step 5: Define Agent Tools
 
 Create the retrieval tools the agent will use.
 
@@ -374,18 +439,14 @@ from langchain_core.tools import tool
 
 @tool
 def search_child_chunks(query: str, k: int = 5) -> List[dict]:
-    """
-    Search for the top K most relevant child chunks.
-    
+    """Search for the top K most relevant child chunks.
+
     Args:
         query: Search query string
         k: Number of results to return
-    
-    Returns:
-        List of dicts with content, parent_id, and source
     """
     try:
-        results = child_vector_store.similarity_search(query, k=k)
+        results = child_vector_store.similarity_search(query, k=k, score_threshold=0.7)
         return [
             {
                 "content": doc.page_content,
@@ -400,18 +461,14 @@ def search_child_chunks(query: str, k: int = 5) -> List[dict]:
 
 @tool
 def retrieve_parent_chunks(parent_ids: List[str]) -> List[dict]:
-    """
-    Retrieve full parent chunks by their IDs.
-    
+    """Retrieve full parent chunks by their IDs.
+
     Args:
         parent_ids: List of parent chunk IDs to retrieve
-    
-    Returns:
-        List of dicts with content, parent_id, and metadata
     """
     unique_ids = sorted(list(set(parent_ids)))
     results = []
-    
+
     for parent_id in unique_ids:
         file_path = os.path.join(PARENT_STORE_PATH, parent_id if parent_id.lower().endswith(".json") else f"{parent_id}.json")
         if os.path.exists(file_path):
@@ -425,7 +482,7 @@ def retrieve_parent_chunks(parent_ids: List[str]) -> List[dict]:
                     })
             except Exception as e:
                 print(f"Error loading parent chunk {parent_id}: {e}")
-    
+
     return results
 
 # Bind tools to LLM
@@ -434,7 +491,7 @@ llm_with_tools = llm.bind_tools([search_child_chunks, retrieve_parent_chunks])
 
 ---
 
-### Step 5: Define State and Data Models
+### Step 6: Define State and Data Models
 
 Create the state structure for conversation tracking.
 
@@ -457,7 +514,7 @@ class QueryAnalysis(BaseModel):
 
 ---
 
-### Step 6: Define Agent System Prompt
+### Step 7: Define Agent System Prompt
 
 Create the prompt that guides the agent's reasoning.
 
@@ -467,21 +524,22 @@ from langchain_core.messages import SystemMessage
 AGENT_SYSTEM_PROMPT = """
 You are an intelligent assistant that MUST use the available tools to answer questions.
 
-**MANDATORY WORKFLOW - Follow these steps for EVERY question:**
+**MANDATORY WORKFLOW — Follow these steps for EVERY question:**
 
-1. **ALWAYS start by calling `search_child_chunks`** with the user's query
-   - Choose appropriate K value (default: 5)
-   
-2. **Read the retrieved chunks** and check if they answer the question
-   
-3. **If chunks are incomplete**, call `retrieve_parent_chunks` with parent_id values
-   
-4. **Answer using ONLY the retrieved information**
-   - Cite source files from metadata
-   
-5. **If no relevant information found after searching**, try rephrasing the query once more
+1. **Call `search_child_chunks`** with the user's query (K = 3–7).
 
-**CRITICAL**: You MUST call tools before answering. Never respond without first using `search_child_chunks`.
+2. **Review the retrieved chunks** and identify the relevant ones.
+
+3. **For each relevant chunk, call `retrieve_parent_chunks`** using its parent_id to get full context.
+
+4. **If the retrieved context is still incomplete, retrieve additional parent chunks** as needed.
+
+5. **If metadata helps clarify or support the answer, USE IT**  
+
+6. **Answer using ONLY the retrieved information**
+   - Cite source files from metadata.
+
+7. **If no relevant information is found,** rewrite the query into an **answer-focused declarative statement** and search again **only once**.
 """
 
 agent_system_message = SystemMessage(content=AGENT_SYSTEM_PROMPT)
@@ -489,81 +547,101 @@ agent_system_message = SystemMessage(content=AGENT_SYSTEM_PROMPT)
 
 ---
 
-### Step 7: Build Graph Node Functions
+### Step 8: Build Graph Node Functions
 
 Create the processing nodes for the LangGraph workflow.
 
 ```python
-from langchain_core.messages import HumanMessage, AIMessage, RemoveMessage
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, RemoveMessage
 from typing import Literal
 
 def analyze_chat_and_summarize(state: State):
     """
     Analyzes chat history and summarizes key points for context.
     """
-    if len(state["messages"]) < 4:
+    if len(state["messages"]) < 4:  # Need some history to summarize
         return {"conversation_summary": ""}
-    
+
     # Extract relevant messages (excluding current query and system messages)
     relevant_msgs = [
-        msg for msg in state["messages"][:-1]
-        if isinstance(msg, (HumanMessage, AIMessage)) 
+        msg for msg in state["messages"][:-1]  # Exclude current query
+        if isinstance(msg, (HumanMessage, AIMessage))
         and not getattr(msg, "tool_calls", None)
     ]
-    
+
     if not relevant_msgs:
         return {"conversation_summary": ""}
-    
-    summary_prompt = """Summarize the key topics and context from this conversation concisely (2-3 sentences max). Discard irrelevant information, such as misunderstandings or off-topic queries/responses. If there are no key topics, return an empty string:\n\n"""
+
+    summary_prompt = """**Summarize the key topics and context from this conversation concisely (1-2 sentences max).**
+    Discard irrelevant information, such as misunderstandings or off-topic queries/responses.
+    If there are no key topics, return an empty string.
+
+    """
     for msg in relevant_msgs[-6:]:  # Last 6 messages for context
         role = "User" if isinstance(msg, HumanMessage) else "Assistant"
         summary_prompt += f"{role}: {msg.content}\n"
-    
+
     summary_prompt += "\nBrief Summary:"
-    summary_response = llm.with_config(temperature=0.2).invoke([SystemMessage(content=summary_prompt)])
+    summary_response = llm.with_config(temperature=0.3).invoke([SystemMessage(content=summary_prompt)])
     return {"conversation_summary": summary_response.content}
 
 def analyze_and_rewrite_query(state: State):
     """
-    Analyzes user query and rewrites it for clarity, using conversation context.
+    Analyzes user query and rewrites it for clarity, optionally using conversation context.
     """
     last_message = state["messages"][-1]
     conversation_summary = state.get("conversation_summary", "")
 
     context_section = (
-        f"**Conversation Context:**\n{conversation_summary}" 
-        if conversation_summary.strip() 
+        f"**Conversation Context:**\n{conversation_summary}"
+        if conversation_summary.strip()
         else "**Conversation Context:**\n[First query in conversation]"
     )
-    
-    prompt = f"""Rewrite the user's query to be clear and optimized for information retrieval.
 
-              **User Query:**
-              `"{last_message.content}"`
-              
-              `{context_section}`
-              
-              **Instructions:**
-              
-              1. **If this is a follow-up** (uses pronouns, references previous topics): Resolve all references using the context to make it a self-contained query.
-              2. **If it's a new independent query:** Ensure it's already clear and specific.
-              3. **If it contains multiple distinct questions:** Split them into a list of separate, focused questions.
-              4. **Use specific, keyword-rich language:** Remove vague terms and conversational filler.
-              5. **Mark as unclear** if you cannot determine a clear user intent for information retrieval.
-                 * This includes queries that are **nonsense/gibberish**, **insults**, or statements without an apparent question.
-              """
-    
-    llm_with_structure = llm.with_config(temperature=0.2).with_structured_output(QueryAnalysis)
+    # Create analysis prompt
+    prompt = f"""
+    **Rewrite the user's query** to be clear, self-contained, and optimized for information retrieval.
+
+    **User Query:**
+    "{last_message.content}"
+
+    {context_section}
+
+    **Instructions:**
+
+    1. **Resolve references for follow-ups:** 
+    - If the query uses pronouns or refers to previous topics, use the context to make it self-contained.
+
+    2. **Ensure clarity for new queries:** 
+    - Make the query specific, concise, and unambiguous.
+
+    3. **Correct errors and interpret intent:** 
+    - If the query is grammatically incorrect, contains typos, or has abbreviations, correct it and infer the intended meaning.
+
+    4. **Split only when necessary:** 
+    - If multiple distinct questions exist, split into **up to 3 focused sub-queries** to avoid over-segmentation.
+    - Each sub-query must still be meaningful on its own.
+
+    5. **Optimize for search:** 
+    - Use **keywords, proper nouns, numbers, dates, and technical terms**. 
+    - Remove conversational filler, vague words, and redundancies.
+    - Make the query concise and focused for information retrieval.
+
+    6. **Mark as unclear if intent is missing:** 
+    - This includes nonsense, gibberish, insults, or statements without an apparent question.
+    """
+
+    llm_with_structure = llm.with_config(temperature=0.3).with_structured_output(QueryAnalysis)
     response = llm_with_structure.invoke([SystemMessage(content=prompt)])
-    
+
     if response.is_clear:
         # Remove all non-system messages
         delete_all = [
-            RemoveMessage(id=m.id) 
-            for m in state["messages"] 
+            RemoveMessage(id=m.id)
+            for m in state["messages"]
             if not isinstance(m, SystemMessage)
         ]
-        
+
         # Format rewritten query
         rewritten = (
             "\n".join([f"{i+1}. {q}" for i, q in enumerate(response.questions)])
@@ -592,7 +670,7 @@ def route_after_rewrite(state: State) -> Literal["agent", "human_input"]:
 def agent_node(state: State):
     """Main agent node that processes queries using tools"""
     messages = [SystemMessage(content=agent_system_message.content)] + state["messages"]
-    response = llm_with_tools.with_config(temperature=0.1).invoke(messages)
+    response = llm_with_tools.invoke(messages)
     return {"messages": [response]}
 ```
 
@@ -604,7 +682,7 @@ def agent_node(state: State):
 
 ---
 
-### Step 8: Build the LangGraph Agent
+### Step 9: Build the LangGraph Agent
 
 Assemble the complete workflow graph with conversation memory.
 
@@ -651,9 +729,10 @@ agent_graph = graph_builder.compile(
 
 ---
 
-### Step 9: Create Chat Interface
+### Step 10: Create Chat Interface
 
-Build a Gradio interface with conversation persistence.
+Build a Gradio interface with conversation persistence. For a complete end-to-end pipeline Gradio interface, including document ingestion, please refer to the project folder
+
 
 ```python
 import gradio as gr
@@ -710,14 +789,14 @@ The easiest way to get started:
 **Running in Google Colab:**
 1. Click the **Open in Colab** badge at the top of this README
 2. Create a `docs/` folder in the file browser
-3. Upload your `.md` files to the `docs/` folder (or use sample files from the `sample_files/` folder)
+3. Upload your pdf files to the `docs/` folder
 4. Run all cells from top to bottom
 5. The chat interface will appear at the end
 
 **Running Locally (Jupyter/VSCode):**
-1. Install dependencies first (available inside the project folder): `pip install -r requirements.txt`
+1. Install dependencies first `pip install -r requirements.txt`
 2. Open the notebook in your preferred environment
-3. Add your `.md` files to the `docs/` folder (sample files available in `sample_files/`)
+3. Add your pdf files to the `docs/` folder
 4. Run all cells from top to bottom
 5. The chat interface will appear at the end
 
@@ -736,29 +815,16 @@ source venv/bin/activate
 .\venv\Scripts\activate
 
 # Install packages
-cd project
 pip install -r requirements.txt
 ```
 
-#### 2. Add Your Documents
-
-Place your `.md` files into the `docs/` directory (sample files available in `sample_files/`).
-
-#### 3. Index Your Documents
-
-```bash
-python indexing.py
-```
-
-This processes all files from `docs/` and populates the vector database.
-
-#### 4. Run the Application
+#### 2. Run the Application
 
 ```bash
 python app.py
 ```
 
-#### 5. Ask Questions
+#### 3. Ask Questions
 
 Open the local URL (e.g., `http://127.0.0.1:7860`) to start chatting.
 
@@ -782,12 +848,6 @@ User: "The installation process for PostgreSQL"
 Agent: [Retrieves and answers with specific information]
 ```
 
-### Converting PDFs to Markdown
-
-Need to convert PDFs? Use this companion notebook:
-
-📘 **[PDF to Markdown Converter](https://colab.research.google.com/gist/GiovanniPasq/a5f749f9f9f03f0ca90f8b480ec952ac/pdf_to_md.ipynb)**
-
 ---
 
 ## Upcoming Features
@@ -795,8 +855,8 @@ Need to convert PDFs? Use this companion notebook:
 | Feature | Release | Description | Status |
 |---------|---------|-------------|--------|
 | 📄 **Enhanced PDF Notebook** | Released on 4 Nov 2025 | Additional guidance with library comparisons and useful repositories | ✅ Implemented |
-| 🎯 **End-to-End Gradio Interface** | Nov 25, 2025 | Fully automated pipeline | ⌛ In Progress |
-| 🤖 **Multi-Agent Map-Reduce** | End of Dec 2025 | Parallel processing architecture | 🛠️ Planned |
+| 🎯 **End-to-End Gradio Interface** | Released on 15 Nov 2025 | Fully automated pipeline | ✅ Implemented |
+| 🤖 **Multi-Agent Map-Reduce** | End of Dec 2025 | Parallel processing architecture | ⌛ In Progress |
 
 ---
 
