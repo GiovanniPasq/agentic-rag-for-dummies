@@ -916,7 +916,7 @@ Agent: [Retrieves and answers with specific information]
 |---------|---------|-------------|--------|
 | 📄 **Enhanced PDF Notebook** | Released on 4 Nov 2025 | Additional guidance with library comparisons and useful repositories | ✅ Implemented |
 | 🎯 **End-to-End Gradio Interface** | Released on 15 Nov 2025 | Fully automated pipeline | ✅ Implemented |
-| 🤖 **Multi-Agent Map-Reduce** | End of Dec 2025 | Parallel processing architecture | ⌛ In Progress |
+| 🤖 **Multi-Agent Map-Reduce** | Dec 2025 | Parallel processing architecture | ⌛ In Progress |
 
 ---
 
