@@ -106,7 +106,7 @@ The system intelligently processes the user's query:
 
 Documents are split twice:
 - **Parent Chunks**: Large sections based on Markdown headers (H1, H2, H3)
-- **Child Chunks**: Small, fixed-size pieces (500 chars) derived from parents
+- **Child Chunks**: Small, fixed-size pieces derived from parents
 
 Storage:
 - **Child Chunks** → Qdrant vector database (hybrid dense + sparse embeddings)
@@ -118,7 +118,7 @@ Storage:
 2. Evaluates if results are sufficient
 3. Fetches parent chunks for context if needed
 4. Generates answer from complete information
-5. Self-corrects and re-queries if insufficient (max 3 attempts)
+5. Self-corrects and re-queries if insufficient
 
 ---
 
