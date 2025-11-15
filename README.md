@@ -833,8 +833,8 @@ project/
 - **Graph Logic**: Customize conditional routing in `edges.py` and node processing in `nodes.py`
 
 #### **Document Processing**
-- **Markdown Conversion** (`util.py`): Replace PDF conversion tools with alternatives (e.g., PyMuPDF, pdfplumber, Unstructured)
-- **Chunking Strategy** (`document_chunker.py`): Implement custom chunking algorithms (semantic, recursive, or hybrid approaches)
+- **Markdown Conversion** (`util.py`): Replace PDF conversion tools with alternatives (e.g., Docling, PaddleOCR). More details [here]((https://colab.research.google.com/gist/GiovanniPasq/a5f749f9f9f03f0ca90f8b480ec952ac/pdf_to_md.ipynb))
+- **Chunking Strategy** (`document_chunker.py`): Implement custom chunking algorithms (e.g. semantic, hybrid approaches)
 
 This modular design ensures flexibility for experimenting with different RAG techniques, LLM providers, and document processing pipelines.
 
