@@ -38,20 +38,6 @@
   <em>• End-to-end Gradio interface for a complete interactive RAG pipeline</em>
 </p>
 
-## Why This Repo?
-
-While many RAG examples exist, most are simple pipelines that force a trade-off: use small chunks for search precision *or* large chunks for answer context. They lack the intelligence to adapt and understand conversation context.
-
-This repository provides a production-ready **Agentic RAG** system that combines:
-
-- **Hierarchical (Parent/Child) indexing** for precision and context
-- **Conversation memory** to understand follow-up questions
-- **Human-in-the-loop query clarification** to resolve ambiguous queries
-- **LangGraph-powered reasoning** that evaluates, searches, and self-corrects
-- **Provider-agnostic design** - develop with Ollama, deploy with any cloud LLM
-
----
-
 ## Overview
 
 This repository demonstrates how to build an **Agentic RAG (Retrieval-Augmented Generation)** system using LangGraph with minimal code. It implements:
@@ -62,8 +48,31 @@ This repository demonstrates how to build an **Agentic RAG (Retrieval-Augmented 
 - 🧠 **Intelligent Evaluation**: Assesses relevance at the granular chunk level
 - 🤖 **Agent Orchestration**: Uses LangGraph to coordinate the entire workflow
 - ✅ **Self-Correction**: Re-queries if initial results are insufficient
+- 🏗️ **Modular & Production-Ready**: Swap LLM providers, embeddings, databases, or chunking strategies independently. Clear separation between agent logic, storage, and UI makes customization straightforward.
 
-This approach combines the **precision of small chunks** with the **contextual richness of large chunks**, while understanding conversation flow and resolving unclear queries.
+This approach combines the **precision of small chunks** with the **contextual richness of large chunks**, while understanding conversation flow and resolving unclear queries. The **modular architecture** ensures every component—from document processing to retrieval logic—can be customized without breaking the system.
+
+---
+
+## Why This Repo?
+
+Most RAG tutorials show basic concepts but lack production readiness. This repository bridges that gap by providing **both learning materials and deployable code**:
+
+❌ **Typical RAG repos:**
+- Simple pipelines that trade off precision vs context
+- No conversation memory
+- Static, non-adaptive retrieval
+- Hard to customize for your use case
+- No UI interface
+
+✅ **This repo:**
+- **Two learning paths**: Interactive notebook OR full app
+- **Hierarchical indexing** for precision + context
+- **Conversation memory** for natural dialogue
+- **Human-in-the-loop** query clarification
+- **Modular architecture** - swap any component
+- **Provider-agnostic** - use any LLM (Ollama, OpenAI, Gemini, Claude)
+- **UI interface** - end-to-end Gradio app with document management
 
 ---
 
@@ -779,6 +788,55 @@ demo.launch()
 **You're done!** You now have a fully functional Agentic RAG system with conversation memory and query clarification.
 
 ---
+
+## Modular Architecture
+
+The app (`project/` folder) is organized in modular components that can be easily customized:
+
+### 📂 Project Structure
+```
+project/
+├── app.py                    # Main Gradio application entry point
+├── config.py                 # Configuration hub (models, chunk sizes, providers)
+├── util.py                   # PDF to markdown conversion
+├── document_chunker.py       # Chunking strategy
+├── core/                     # Core RAG components orchestration
+│   ├── chat_interface.py     
+│   ├── document_manager.py   
+│   └── rag_system.py         
+├── db/                       # Storage management
+│   ├── parent_store_manager.py  # Parent chunks storage (JSON)
+│   └── vector_db_manager.py     # Qdrant vector database setup
+├── rag_agent/                # LangGraph agent workflow
+│   ├── edges.py              # Conditional routing logic
+│   ├── graph.py              # Graph construction and compilation
+│   ├── graph_state.py        # State definitions
+│   ├── nodes.py              # Processing nodes (summarize, rewrite, agent)
+│   ├── prompts.py            # System prompts
+│   ├── schemas.py            # Pydantic data models
+│   └── tools.py              # Retrieval tools
+└── ui/                       # User interface
+    └── gradio_app.py         # Gradio interface components
+```
+
+### 🔧 Customization Points
+
+#### **Configuration (`config.py`)**
+- **LLM Provider & Model**: Switch between Ollama, Claude, OpenAI, or Gemini
+- **Embedding Model**: Configure embedding model for vector representations
+- **Chunk Sizes**: Adjust child and parent chunk dimensions for optimal retrieval
+
+#### **RAG Agent (`rag_agent/`)**
+- **Workflow Customization**: Add or remove nodes and edges to modify the agent flow
+- **System Prompts**: Tailor prompts in `prompts.py` for domain-specific applications
+- **Retrieval Tools**: Extend or modify tools in `tools.py` to enhance retrieval capabilities
+- **Graph Logic**: Customize conditional routing in `edges.py` and node processing in `nodes.py`
+
+#### **Document Processing**
+- **Markdown Conversion** (`util.py`): Replace PDF conversion tools with alternatives (e.g., PyMuPDF, pdfplumber, Unstructured)
+- **Chunking Strategy** (`document_chunker.py`): Implement custom chunking algorithms (semantic, recursive, or hybrid approaches)
+
+This modular design ensures flexibility for experimenting with different RAG techniques, LLM providers, and document processing pipelines.
 
 ## Installation & Usage
 
