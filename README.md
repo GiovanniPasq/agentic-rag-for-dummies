@@ -241,6 +241,7 @@ PARENT_STORE_PATH = "parent_store"  # Directory for parent chunk JSON files
 CHILD_COLLECTION = "document_child_chunks"
 
 os.makedirs(DOCS_DIR, exist_ok=True)
+os.makedirs(MARKDOWN_DIR, exist_ok=True)
 os.makedirs(PARENT_STORE_PATH, exist_ok=True)
 
 from langchain_ollama import ChatOllama
