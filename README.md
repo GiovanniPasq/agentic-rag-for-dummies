@@ -48,7 +48,26 @@ This repository demonstrates how to build an **Agentic RAG (Retrieval-Augmented 
 - 🧠 **Intelligent Evaluation**: Assesses relevance at the granular chunk level
 - 🤖 **Agent Orchestration**: Uses LangGraph to coordinate the entire workflow
 - ✅ **Self-Correction**: Re-queries if initial results are insufficient
-- 🏗️ **Modular & Production-Ready**: Swap LLM providers, embeddings, databases, or chunking strategies independently. Clear separation between agent logic, storage, and UI makes customization straightforward.
+
+---
+
+### 🎯 Two Ways to Use This Repo
+
+**1️⃣ Learning Path: Interactive Notebook**  
+Step-by-step tutorial perfect for understanding core concepts. Start here if you're new to Agentic RAG or want to experiment quickly.
+
+**2️⃣ Building Path: Modular Project**  
+Modular architecture where every component is independently swappable. Use this if you want to build real applications or customize the system for your needs.
+
+**Examples of what you can customize:**
+- **LLM Provider**: Switch from Ollama to Claude, OpenAI, or Gemini (one line change)
+- **Agent Workflow**: Add/remove nodes in the graph and customize system prompts for specific domains (legal, medical, etc.)
+- **PDF Conversion**: Replace PyMuPDF with Docling, PaddleOCR, or other tools
+- **Embedding Models**: Change dense/sparse embedding models via config
+
+See the [Modular Architecture](#modular-architecture) section for details on how the system is organized and the [Installation & Usage](#installation--usage) section to get started.
+
+---
 
 This approach combines the **precision of small chunks** with the **contextual richness of large chunks**, while understanding conversation flow and resolving unclear queries. The **modular architecture** ensures every component—from document processing to retrieval logic—can be customized without breaking the system.
 
