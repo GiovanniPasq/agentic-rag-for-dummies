@@ -106,11 +106,8 @@ Agent Reasoning → Search Child Chunks → Evaluate Relevance →
 ```
 
 ### Stage 1: Conversation Understanding
-
-Before processing any query, the system:
-1. **Analyzes recent conversation history** to extract key topics and context
-2. **Summarizes relevant information** from previous exchanges
-3. **Maintains conversational continuity** across multiple questions
+- Analyzes recent conversation history to extract context
+- Maintains conversational continuity across multiple questions
 
 ### Stage 2: Query Clarification
 
@@ -123,13 +120,10 @@ The system intelligently processes the user's query:
 
 ### Stage 3: Hierarchical Indexing
 
-Documents are split twice:
+Documents are split twice for optimal retrieval:
+
 - **Parent Chunks**: Large sections based on Markdown headers (H1, H2, H3)
 - **Child Chunks**: Small, fixed-size pieces derived from parents
-
-Storage:
-- **Child Chunks** → Qdrant vector database (hybrid dense + sparse embeddings)
-- **Parent Chunks** → JSON file store (retrieved by ID)
 
 ### Stage 4: Intelligent Retrieval
 
@@ -145,7 +139,7 @@ Storage:
 
 This system is **provider-agnostic** - you can use any LLM supported by LangChain. Choose the option that best fits your needs:
 
-### Option 1: Ollama (Local - Recommended for Development)
+### Ollama (Local - Recommended for Development)
 
 **Install Ollama and download the model:**
 
@@ -164,7 +158,7 @@ llm = ChatOllama(model="qwen3:4b-instruct-2507-q4_K_M", temperature=0)
 
 ---
 
-### Option 2: Google Gemini (Cloud - Recommended for Production)
+### Google Gemini (Cloud - Recommended for Production)
 
 **Install the package:**
 
@@ -185,45 +179,36 @@ llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash-exp", temperature=0)
 
 ---
 
-### Option 3: OpenAI (Cloud)
+### OpenAI / Anthropic Claude
 
-**Install the package:**
+<details>
+<summary>Click to expand</summary>
 
+**OpenAI:**
 ```bash
 pip install -qU langchain-openai
 ```
-
-**Python code:**
-
 ```python
-import os
 from langchain_openai import ChatOpenAI
+import os
 
-# Set your OpenAI API key
 os.environ["OPENAI_API_KEY"] = "your-api-key-here"
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 ```
 
----
-
-### Option 4: Anthropic Claude (Cloud)
-
-**Install the package:**
-
+**Anthropic Claude:**
 ```bash
 pip install -qU langchain-anthropic
 ```
-
-**Python code:**
-
 ```python
-import os
 from langchain_anthropic import ChatAnthropic
+import os
 
-# Set your Anthropic API key
 os.environ["ANTHROPIC_API_KEY"] = "your-api-key-here"
 llm = ChatAnthropic(model="claude-3-5-sonnet-20241022", temperature=0)
 ```
+
+</details>
 
 ---
 
