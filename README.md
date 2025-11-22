@@ -19,7 +19,7 @@
 
 <p align="center">
   <strong>Quickstart here 👉</strong> 
-  <a href="https://colab.research.google.com/gist/GiovanniPasq/cca93a520c996573a1433e6b815c9a44/agentic_rag_for_dummies.ipynb">
+  <a href="https://colab.research.google.com/gist/GiovanniPasq/a0b78b2fb9eb80045e18ec5a43f7e5ac/agentic_rag_for_dummies.ipynb#scrollTo=5aadf1ed">
     <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
   </a>
 </p>
@@ -841,9 +841,9 @@ with gr.Blocks() as demo:
         placeholder="<strong>Ask me anything!</strong><br><em>I'll search, reason, and act to give you the best answer :)</em>"
     )
     chatbot.clear(clear_session)
-    gr.ChatInterface(fn=chat_with_agent, type="messages", chatbot=chatbot)
+    gr.ChatInterface(fn=chat_with_agent, chatbot=chatbot)
 
-demo.launch()
+demo.launch(theme=gr.themes.Citrus())
 ```
 
 **You're done!** You now have a fully functional Agentic RAG system with conversation memory and query clarification.
