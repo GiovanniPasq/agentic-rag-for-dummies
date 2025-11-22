@@ -39,19 +39,7 @@ def create_gradio_ui():
     def clear_chat_handler():
         chat_interface.clear_session()
     
-    custom_css = """
-    .gradio-container { 
-        max-width: 1000px !important;
-        width: 100% !important;
-        margin: 0 auto !important;
-    }
-    #doc-management-tab {
-        max-width: 500px !important;
-        margin: 0 auto !important;
-    }
-    """
-    
-    with gr.Blocks(title="RAG Assistant", css=custom_css, theme=gr.themes.Citrus()) as demo:
+    with gr.Blocks(title="RAG Assistant") as demo:
         
         with gr.Tab("📚 Documents", elem_id="doc-management-tab"):
             gr.Markdown("## Add Documents")
@@ -96,6 +84,6 @@ def create_gradio_ui():
             )
             chatbot.clear(clear_chat_handler)
             
-            gr.ChatInterface(fn=chat_handler, type="messages", chatbot=chatbot)
+            gr.ChatInterface(fn=chat_handler, chatbot=chatbot)
     
     return demo
