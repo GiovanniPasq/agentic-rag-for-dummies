@@ -949,6 +949,71 @@ python app.py
 
 Open the local URL (e.g., `http://127.0.0.1:7860`) to start chatting.
 
+---
+
+### Option 3: Docker Deployment 
+
+> ⚠️ **System Requirements**: Docker deployment requires **at least 8GB of RAM** allocated to Docker. The Ollama model (`qwen3:4b-instruct-2507-q4_K_M`) needs approximately 3.3GB of memory to run.
+
+#### Prerequisites
+
+- Docker installed on your system ([Get Docker](https://docs.docker.com/get-docker/))
+- Docker Desktop configured with at least 8GB of RAM (Settings → Resources → Memory)
+
+#### 1. Build the Docker Image
+
+```bash
+docker build -f project/Dockerfile -t agentic-rag .
+```
+
+#### 2. Run the Container
+
+```bash
+docker run --name rag-assistant -p 7860:7860 agentic-rag
+```
+
+> ⚠️ **Performance Note**: Docker deployment may be 20-50% slower than running Python locally, especially on Windows/Mac, due to virtualization overhead and I/O operations. This is normal and expected. For maximum performance during development, consider using Option 2 (Full Python Project).
+
+**Optional: Enable GPU acceleration** (NVIDIA GPU only):
+
+If you have an NVIDIA GPU and [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) installed:
+
+```bash
+docker run --gpus all --name rag-assistant -p 7860:7860 agentic-rag
+```
+
+**Common Docker commands:**
+
+```bash
+# Stop the container
+docker stop rag-assistant
+
+# Start an existing container
+docker start rag-assistant
+
+# View logs in real-time
+docker logs -f rag-assistant
+
+# Remove the container
+docker rm rag-assistant
+
+# Remove the container forcefully (if running)
+docker rm -f rag-assistant
+```
+
+#### 3. Access the Application
+
+Once the container is running and you see:
+```
+🚀 Launching RAG Assistant...
+* Running on local URL:  http://0.0.0.0:7860
+```
+
+Open your browser and navigate to:
+```
+http://localhost:7860
+```
+
 ### Example Conversations
 
 **With Conversation Memory:**
