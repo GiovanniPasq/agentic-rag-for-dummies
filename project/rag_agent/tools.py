@@ -10,6 +10,7 @@ class ToolFactory:
     
     def _search_child_chunks(self, query: str, k: int) -> List[dict]:
         """Search for the top K most relevant child chunks.
+        
         Args:
             query: Search query string
             k: Number of results to return
