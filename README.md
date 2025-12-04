@@ -14,7 +14,6 @@
   <a href="#llm-provider-configuration">LLM Providers</a> •
   <a href="#implementation">Implementation</a> •
   <a href="#installation--usage">Installation & Usage</a> •
-  <a href="#upcoming-features">Upcoming Features</a>
 </p>
 
 <p align="center">
@@ -35,29 +34,31 @@
 <p align="center" style="line-height: 1.6;">
   <em>✨ <strong>New:</strong></em><br>
   <em>• Comprehensive PDF → Markdown conversion guide, including tool comparisons and VLM-based approaches</em><br>
-  <em>• End-to-end Gradio interface for a complete interactive RAG pipeline</em>
+  <em>• End-to-end Gradio interface for a complete interactive RAG pipeline</em><br>
+  <em>• Multi-Agent Map-Reduce for parallel query processing</em>
 </p>
 
 ## Overview
 
 This repository demonstrates how to build an **Agentic RAG (Retrieval-Augmented Generation)** system using LangGraph with minimal code. It implements:
 
-- 🔍 **Hierarchical Indexing**: Search small, specific chunks (Child) for precision, retrieve larger Parent chunks for context
 - 💬 **Conversation Memory**: Maintains context across multiple questions for natural dialogue
 - 🔄 **Query Clarification**: Automatically rewrites ambiguous queries or asks for clarification
-- 🧠 **Intelligent Evaluation**: Assesses relevance at the granular chunk level
+- 🔍 **Hierarchical Indexing**: Search small, specific chunks (Child) for precision, retrieve larger Parent chunks for context
 - 🤖 **Agent Orchestration**: Uses LangGraph to coordinate the entire workflow
+- 🧠 **Intelligent Evaluation**: Assesses relevance at the granular chunk level
 - ✅ **Self-Correction**: Re-queries if initial results are insufficient
+- 🔀 **Multi-Agent Map-Reduce**: Decomposes queries into parallel sub-queries for comprehensive answers (modular project only)
 
 ---
 
 ### 🎯 Two Ways to Use This Repo
 
 **1️⃣ Learning Path: Interactive Notebook**  
-Step-by-step tutorial perfect for understanding core concepts. Start here if you're new to Agentic RAG or want to experiment quickly.
+Step-by-step tutorial perfect for understanding core concepts. Start here if you're new to Agentic RAG or want to experiment quickly. Focuses on the essential workflow without advanced features to keep things simple.
 
 **2️⃣ Building Path: Modular Project**  
-Modular architecture where every component is independently swappable. Use this if you want to build real applications or customize the system for your needs.
+Modular architecture that includes **Multi-Agent Map-Reduce** for parallel query processing. Every component is independently swappable. Use this if you want to build real applications or customize the system for your needs.
 
 **Examples of what you can customize:**
 - **LLM Provider**: Switch from Ollama to Claude, OpenAI, or Gemini (one line change)
@@ -69,7 +70,7 @@ See the [Modular Architecture](#modular-architecture) section for details on how
 
 ---
 
-This approach combines the **precision of small chunks** with the **contextual richness of large chunks**, while understanding conversation flow and resolving unclear queries. The **modular architecture** ensures every component—from document processing to retrieval logic—can be customized without breaking the system.
+This approach combines the **precision of small chunks** with the **contextual richness of large chunks**, while understanding conversation flow, resolving unclear queries, and handling multi-faceted questions through parallel agent processing. The **modular architecture** ensures every component—from document processing to retrieval logic—can be customized without breaking the system.
 
 ---
 
@@ -85,10 +86,11 @@ Most RAG tutorials show basic concepts but lack production readiness. This repos
 - No UI interface
 
 ✅ **This repo:**
-- **Two learning paths**: Interactive notebook OR full app
+- **Two learning paths**: Interactive notebook OR modular project
 - **Hierarchical indexing** for precision + context
 - **Conversation memory** for natural dialogue
 - **Human-in-the-loop** query clarification
+- **Multi-Agent Map-Reduce** for parallel processing of complex queries
 - **Modular architecture** - swap any component
 - **Provider-agnostic** - use any LLM (Ollama, OpenAI, Gemini, Claude)
 - **UI interface** - end-to-end Gradio app with document management
@@ -97,19 +99,29 @@ Most RAG tutorials show basic concepts but lack production readiness. This repos
 
 ## How It Works
 
-The system uses a **four-stage intelligent workflow**:
+### Document Preparation: Hierarchical Indexing
 
+Before queries can be processed, documents are split twice for optimal retrieval:
+
+- **Parent Chunks**: Large sections based on Markdown headers (H1, H2, H3)
+- **Child Chunks**: Small, fixed-size pieces derived from parents
+
+This approach combines the **precision of small chunks** for search with the **contextual richness of large chunks** for answer generation.
+
+---
+
+### Query Processing: Four-Stage Intelligent Workflow
 ```
 User Query → Conversation Analysis → Query Clarification →
 Agent Reasoning → Search Child Chunks → Evaluate Relevance →
 (If needed) → Retrieve Parent Chunks → Generate Answer → Return Response
 ```
 
-### Stage 1: Conversation Understanding
+#### Stage 1: Conversation Understanding
 - Analyzes recent conversation history to extract context
 - Maintains conversational continuity across multiple questions
 
-### Stage 2: Query Clarification
+#### Stage 2: Query Clarification
 
 The system intelligently processes the user's query:
 1. **Resolves references** - Converts "How do I update it?" → "How do I update SQL?"
@@ -118,20 +130,24 @@ The system intelligently processes the user's query:
 4. **Requests clarification** - Uses human-in-the-loop to pause and ask for details
 5. **Rewrites for retrieval** - Optimizes query with specific, keyword-rich language
 
-### Stage 3: Hierarchical Indexing
+#### Stage 3: Intelligent Retrieval
 
-Documents are split twice for optimal retrieval:
-
-- **Parent Chunks**: Large sections based on Markdown headers (H1, H2, H3)
-- **Child Chunks**: Small, fixed-size pieces derived from parents
-
-### Stage 4: Intelligent Retrieval
-
+**Standard Workflow:**
 1. Agent searches child chunks for precision
 2. Evaluates if results are sufficient
 3. Fetches parent chunks for context if needed
 4. Generates answer from complete information
 5. Self-corrects and re-queries if insufficient
+
+**Multi-Agent Map-Reduce (Modular Project Only):**
+
+When the query analysis stage identifies multiple distinct questions (either explicitly asked or decomposed from a complex query), the system automatically spawns parallel agents. Each agent independently processes one question through the full retrieval workflow above, then all responses are synthesized into a unified answer.
+
+**Example:** *"What is JavaScript? What is Python?"* → 2 parallel agents
+
+#### Stage 4: Response Generation
+
+The system synthesizes information from retrieved chunks (or multiple agents) into a coherent, accurate answer that directly addresses the user's question.
 
 ---
 
@@ -322,7 +338,7 @@ def pdfs_to_markdowns(path_pattern, overwrite: bool = False):
         if overwrite or not md_path.exists():
             pdf_to_markdown(pdf_path, output_dir)
 
-pdfs_to_markdowns("./docs/*.pdf")
+pdfs_to_markdowns(f"{DOCS_DIR}/*.pdf")
 ```
 
 ---
@@ -1033,16 +1049,6 @@ Agent: "I need more information. What specific topic are you asking about?"
 User: "The installation process for PostgreSQL"
 Agent: [Retrieves and answers with specific information]
 ```
-
----
-
-## Upcoming Features
-
-| Feature | Release | Description | Status |
-|---------|---------|-------------|--------|
-| 📄 **Enhanced PDF Notebook** | Released on 4 Nov 2025 | Additional guidance with library comparisons and useful repositories | ✅ Implemented |
-| 🎯 **End-to-End Gradio Interface** | Released on 15 Nov 2025 | Fully automated pipeline | ✅ Implemented |
-| 🤖 **Multi-Agent Map-Reduce** | Dec 2025 | Parallel processing architecture | ⌛ In Progress |
 
 ---
 
