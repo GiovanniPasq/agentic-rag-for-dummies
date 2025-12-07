@@ -18,7 +18,7 @@
 
 <p align="center">
   <strong>Quickstart here 👉</strong> 
-  <a href="https://colab.research.google.com/gist/GiovanniPasq/6aa4bc5c9ecaefcace5f507f3f7b41c4/agentic_rag_for_dummies.ipynb">
+  <a href="https://colab.research.google.com/gist/GiovanniPasq/3f3408262b7ac77bc7271b0af8a5c4ae/agentic_rag_for_dummies.ipynb">
     <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
   </a>
 </p>
@@ -577,7 +577,90 @@ llm_with_tools = llm.bind_tools([search_child_chunks, retrieve_parent_chunks])
 
 ---
 
-### Step 6: Define State and Data Models
+### Step 6: Define System Prompts
+
+Define the system prompts for conversation summarization, query analysis, and RAG agent reasoning.
+
+```python
+def get_conversation_summary_prompt() -> str:
+    return """
+        Summarize the key topics and context from this conversation in 1-2 concise sentences.
+
+        Focus on:
+        - Main topics discussed
+        - Important facts or entities mentioned
+        - Any unresolved questions
+
+        Discard: greetings, misunderstandings, off-topic content.
+        If no meaningful topics exist, return an empty string.
+
+        Output:
+
+        - Return ONLY the summary.
+        - Do NOT include any explanations or justifications.
+        """
+
+def get_query_analysis_prompt() -> str:
+    return """
+        Rewrite the user query so it can be used for document retrieval.
+
+        Rules:
+
+        - The final query must be clear and self-contained.
+        - Always return at least one rewritten query.
+        - If the query contains a specific product name, brand, proper noun, or technical term,
+        treat it as domain-specific and IGNORE the conversation context.
+        - Use the conversation context ONLY if it is needed to understand the query
+        OR to determine the domain when the query itself is ambiguous.
+        - If the query is clear but underspecified, use relevant context to disambiguate.
+        - Do NOT use context to reinterpret or replace explicit terms in the query.
+        - Do NOT add new constraints, subtopics, or details not explicitly asked.
+        - Fix grammar, typos, and unclear abbreviations.
+        - Remove filler words and conversational wording.
+        - Use concrete keywords and entities ONLY if already implied.
+
+        Splitting:
+        - If the query contains multiple unrelated information needs,
+        split it into at most 3 separate search queries.
+        - When splitting, keep each sub-query semantically equivalent.
+        - Do NOT enrich or expand meaning.
+        - Do NOT split unless it improves retrieval.
+
+        Failure:
+        - If the intent is unclear or meaningless, mark as unclear.
+        """
+
+def get_rag_agent_system_prompt() -> str:
+    return """
+        You are a retrieval-augmented assistant.
+
+        You are NOT allowed to answer immediately.
+
+        Before producing ANY final answer, you must first perform a document search
+        and observe retrieved content.
+
+        If you have not searched, the answer is invalid.
+
+        Workflow:
+        1. Search the documents using the user query.
+        2. Inspect retrieved excerpts and keep only relevant ones.
+        3. Retrieve additional surrounding context ONLY if excerpts are insufficient.
+        4. Stop retrieval as soon as information is sufficient.
+        5. Answer using ONLY retrieved information.
+        6. List file name at the end.
+
+        Retry rule:
+        - If no relevant information is found, rewrite the query into a concise,
+        answer-focused statement and restart the process from STEP 1.
+        - Perform this retry only once.
+
+        If no relevant information is found after the retry, say so.
+        """
+```
+
+---
+
+### Step 7: Define State and Data Models
 
 Create the state structure for conversation tracking.
 
@@ -600,47 +683,11 @@ class QueryAnalysis(BaseModel):
 
 ---
 
-### Step 7: Define Agent System Prompt
-
-Create the prompt that guides the agent's reasoning.
-
-```python
-from langchain_core.messages import SystemMessage
-
-AGENT_SYSTEM_PROMPT = """
-You are an intelligent assistant that MUST use the available tools to answer questions.
-
-**MANDATORY WORKFLOW — Follow these steps for EVERY question:**
-
-1. **Call `search_child_chunks`** with the user's query (K = 3–7).
-
-2. **Review the retrieved chunks** and identify the relevant ones.
-
-3. **For each relevant chunk, call `retrieve_parent_chunks`** using its parent_id to get full context.
-
-4. **If the retrieved context is still incomplete, retrieve additional parent chunks** as needed.
-
-5. **If metadata helps clarify or support the answer, USE IT**  
-
-6. **Answer using ONLY the retrieved information**
-   - Cite source files from metadata.
-
-7. **If no relevant information is found,** rewrite the query into an **answer-focused declarative statement** and search again **only once**.
-"""
-
-agent_system_message = SystemMessage(content=AGENT_SYSTEM_PROMPT)
-```
-
----
-
 ### Step 8: Build Graph Node Functions
 
 Create the processing nodes for the LangGraph workflow.
 
 ```python
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, RemoveMessage
-from typing import Literal
-
 def analyze_chat_and_summarize(state: State):
     """
     Analyzes chat history and summarizes key points for context.
@@ -657,18 +704,13 @@ def analyze_chat_and_summarize(state: State):
 
     if not relevant_msgs:
         return {"conversation_summary": ""}
-
-    summary_prompt = """**Summarize the key topics and context from this conversation concisely (1-2 sentences max).**
-    Discard irrelevant information, such as misunderstandings or off-topic queries/responses.
-    If there are no key topics, return an empty string.
-
-    """
-    for msg in relevant_msgs[-6:]:  # Last 6 messages for context
+    
+    conversation = "Conversation history:\n"
+    for msg in relevant_msgs[-6:]:
         role = "User" if isinstance(msg, HumanMessage) else "Assistant"
-        summary_prompt += f"{role}: {msg.content}\n"
+        conversation += f"{role}: {msg.content}\n"
 
-    summary_prompt += "\nBrief Summary:"
-    summary_response = llm.with_config(temperature=0.3).invoke([SystemMessage(content=summary_prompt)])
+    summary_response = llm.with_config(temperature=0.2).invoke([SystemMessage(content=get_conversation_summary_prompt())] + [HumanMessage(content=conversation)])
     return {"conversation_summary": summary_response.content}
 
 def analyze_and_rewrite_query(state: State):
@@ -678,47 +720,10 @@ def analyze_and_rewrite_query(state: State):
     last_message = state["messages"][-1]
     conversation_summary = state.get("conversation_summary", "")
 
-    context_section = (
-        f"**Conversation Context:**\n{conversation_summary}"
-        if conversation_summary.strip()
-        else "**Conversation Context:**\n[First query in conversation]"
-    )
+    context_section = (f"Conversation Context:\n{conversation_summary}\n" if conversation_summary.strip() else "") + f"User Query:\n{last_message.content}\n"
 
-    # Create analysis prompt
-    prompt = f"""
-    **Rewrite the user's query** to be clear, self-contained, and optimized for information retrieval.
-
-    **User Query:**
-    "{last_message.content}"
-
-    {context_section}
-
-    **Instructions:**
-
-    1. **Resolve references for follow-ups:** 
-    - If the query uses pronouns or refers to previous topics, use the context to make it self-contained.
-
-    2. **Ensure clarity for new queries:** 
-    - Make the query specific, concise, and unambiguous.
-
-    3. **Correct errors and interpret intent:** 
-    - If the query is grammatically incorrect, contains typos, or has abbreviations, correct it and infer the intended meaning.
-
-    4. **Split only when necessary:** 
-    - If multiple distinct questions exist, split into **up to 3 focused sub-queries** to avoid over-segmentation.
-    - Each sub-query must still be meaningful on its own.
-
-    5. **Optimize for search:** 
-    - Use **keywords, proper nouns, numbers, dates, and technical terms**. 
-    - Remove conversational filler, vague words, and redundancies.
-    - Make the query concise and focused for information retrieval.
-
-    6. **Mark as unclear if intent is missing:** 
-    - This includes nonsense, gibberish, insults, or statements without an apparent question.
-    """
-
-    llm_with_structure = llm.with_config(temperature=0.3).with_structured_output(QueryAnalysis)
-    response = llm_with_structure.invoke([SystemMessage(content=prompt)])
+    llm_with_structure = llm.with_config(temperature=0.1).with_structured_output(QueryAnalysis)
+    response = llm_with_structure.invoke([SystemMessage(content=get_query_analysis_prompt())] + [HumanMessage(content=context_section)])
 
     if response.is_clear:
         # Remove all non-system messages
@@ -728,7 +733,6 @@ def analyze_and_rewrite_query(state: State):
             if not isinstance(m, SystemMessage)
         ]
 
-        # Format rewritten query
         rewritten = (
             "\n".join([f"{i+1}. {q}" for i, q in enumerate(response.questions)])
             if len(response.questions) > 1
@@ -755,8 +759,7 @@ def route_after_rewrite(state: State) -> Literal["agent", "human_input"]:
 
 def agent_node(state: State):
     """Main agent node that processes queries using tools"""
-    messages = [SystemMessage(content=agent_system_message.content)] + state["messages"]
-    response = llm_with_tools.invoke(messages)
+    response = llm_with_tools.invoke([SystemMessage(content=get_rag_agent_system_prompt())] + state["messages"])
     return {"messages": [response]}
 ```
 
