@@ -348,9 +348,6 @@ pdfs_to_markdowns(f"{DOCS_DIR}/*.pdf")
 Process documents with the Parent/Child splitting strategy.
 
 ```python
-# ============================================================
-# BLOCK 6: Document Indexing
-# ============================================================
 import os
 import glob
 import json
