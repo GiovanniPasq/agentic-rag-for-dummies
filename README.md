@@ -13,7 +13,7 @@
   <a href="#how-it-works">How It Works</a> •
   <a href="#llm-provider-configuration">LLM Providers</a> •
   <a href="#implementation">Implementation</a> •
-  <a href="#installation--usage">Installation & Usage</a> •
+  <a href="#installation--usage">Installation & Usage</a>
 </p>
 
 <p align="center">

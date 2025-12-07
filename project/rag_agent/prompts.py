@@ -1,148 +1,116 @@
-from langchain_core.messages import HumanMessage
-
-def get_conversation_summary_prompt(messages):
-    summary_prompt = """**Summarize the key topics and context from this conversation in 1-2 concise sentences.**
-   Focus on:
-   - Main topics discussed
-   - Important facts or entities mentioned
-   - Any unresolved questions
-
-   Discard: greetings, misunderstandings, off-topic content.
-   If no meaningful topics exist, return an empty string.
-
-   Conversation:
-
-    """
-    
-    for msg in messages[-6:]:
-        role = "User" if isinstance(msg, HumanMessage) else "Assistant"
-        summary_prompt += f"{role}: {msg.content}\n"
-
-    summary_prompt += "\nSummary:"
-    return summary_prompt
-
-def get_query_analysis_prompt(query: str, conversation_summary: str = "") -> str:
-    context_section = (
-        f"Conversation context (use only if needed):\n{conversation_summary}"
-        if conversation_summary.strip()
-        else "Conversation context: none"
-    )
-
-    return f"""
-Rewrite the user query so it can be used for document retrieval.
-
-User query:
-"{query}"
-
-{context_section}
-
-Rules:
-
-- The final query must be clear and self-contained.
-- If the query contains a specific product name, brand, proper noun, or technical term,
-  treat it as domain-specific and IGNORE the conversation context.
-- Use the conversation context ONLY if it is needed to understand the query
-  OR to determine the domain when the query itself is ambiguous.
-- If the query is clear but underspecified, use relevant context to disambiguate.
-- Do NOT use context to reinterpret or replace explicit terms in the query.
-- Do NOT add new constraints, subtopics, or details not explicitly asked.
-- Fix grammar, typos, and unclear abbreviations.
-- Remove filler words and conversational wording.
-- Use concrete keywords and entities ONLY if already implied.
-
-Splitting:
-- If the query contains multiple unrelated information needs,
-  split it into at most 3 separate search queries.
-- When splitting, keep each sub-query semantically equivalent.
-- Do NOT enrich or expand meaning.
-- Do NOT split unless it improves retrieval.
-
-Failure:
-- If the intent is unclear or meaningless, mark as unclear.
-
-"""
-
-def get_rag_agent_system_prompt():
+def get_conversation_summary_prompt() -> str:
     return """
-You are a retrieval-augmented assistant.
+        Summarize the key topics and context from this conversation in 1-2 concise sentences.
 
-You are NOT allowed to answer immediately.
+        Focus on:
+        - Main topics discussed
+        - Important facts or entities mentioned
+        - Any unresolved questions
 
-Before producing ANY final answer, you must first perform a document search
-and observe retrieved content.
+        Discard: greetings, misunderstandings, off-topic content.
+        If no meaningful topics exist, return an empty string.
 
-If you have not searched, the answer is invalid.
+        Output:
 
-Workflow:
-1. Search the documents using the user query.
-2. Inspect retrieved excerpts and keep only relevant ones.
-3. Retrieve additional surrounding context ONLY if excerpts are insufficient.
-4. Stop retrieval as soon as information is sufficient.
-5. Answer using ONLY retrieved information.
-6. List file name at the end.
+        - Return ONLY the summary.
+        - Do NOT include any explanations or justifications.
+        """
 
-Retry rule:
-- If no relevant information is found, rewrite the query into a concise,
-  answer-focused statement and restart the process from STEP 1.
-- Perform this retry only once.
+def get_query_analysis_prompt() -> str:
+    return """
+        Rewrite the user query so it can be used for document retrieval.
 
-If no relevant information is found after the retry, say so.
-"""
+        Rules:
 
-def get_aggregation_prompt(original_query: str, sorted_answers: list) -> str:
+        - The final query must be clear and self-contained.
+        - Always return at least one rewritten query.
+        - If the query contains a specific product name, brand, proper noun, or technical term,
+        treat it as domain-specific and IGNORE the conversation context.
+        - Use the conversation context ONLY if it is needed to understand the query
+        OR to determine the domain when the query itself is ambiguous.
+        - If the query is clear but underspecified, use relevant context to disambiguate.
+        - Do NOT use context to reinterpret or replace explicit terms in the query.
+        - Do NOT add new constraints, subtopics, or details not explicitly asked.
+        - Fix grammar, typos, and unclear abbreviations.
+        - Remove filler words and conversational wording.
+        - Use concrete keywords and entities ONLY if already implied.
 
-    sorted_answers = sorted(sorted_answers, key=lambda x: x["index"])
+        Splitting:
+        - If the query contains multiple unrelated information needs,
+        split it into at most 3 separate search queries.
+        - When splitting, keep each sub-query semantically equivalent.
+        - Do NOT enrich or expand meaning.
+        - Do NOT split unless it improves retrieval.
 
-    formatted_answers = ""
-    for i, ans in enumerate(sorted_answers, start=1):
-        formatted_answers += (
-            f"\nAnswer {i}:\n"
-            f"{ans['answer']}\n"
-        )
+        Failure:
+        - If the intent is unclear or meaningless, mark as unclear.
+        """
 
-    return f"""
-You are merging multiple retrieved answers into a final response.
+def get_rag_agent_system_prompt() -> str:
+    return """
+        You are a retrieval-augmented assistant.
 
-Original user question:
-{original_query}
+        You are NOT allowed to answer immediately.
 
-Retrieved answers:
-{formatted_answers}
+        Before producing ANY final answer, you must first perform a document search
+        and observe retrieved content.
 
-Rules:
+        If you have not searched, the answer is invalid.
 
-- Use ONLY the content provided in the retrieved answers.
-- Do NOT add new information, explanations, or assumptions.
-- Do NOT rephrase or paraphrase unless combining overlapping answers is required.
+        Workflow:
+        1. Search the documents using the user query.
+        2. Inspect retrieved excerpts and keep only relevant ones.
+        3. Retrieve additional surrounding context ONLY if excerpts are insufficient.
+        4. Stop retrieval as soon as information is sufficient.
+        5. Answer using ONLY retrieved information.
+        6. List file name at the end.
 
-Aggregation instructions:
+        Retry rule:
+        - If no relevant information is found, rewrite the query into a concise,
+        answer-focused statement and restart the process from STEP 1.
+        - Perform this retry only once.
 
-1. If the answers cover different parts of the question:
-   - Combine them into a single coherent response.
-   - Preserve ALL details exactly as written.
+        If no relevant information is found after the retry, say so.
+        """
 
-2. If multiple answers contain overlapping or duplicate information:
-   - Merge them carefully without removing details.
+def get_aggregation_prompt() -> str:
+    return """
+        You are merging multiple retrieved answers into a final response.
 
-3. If an answer is irrelevant or empty:
-   - Ignore it completely.
+        Rules:
 
-Sources and citations:
+        - Use ONLY the content provided in the retrieved answers.
+        - Do NOT add new information, explanations, or assumptions.
+        - Do NOT rephrase or paraphrase unless combining overlapping answers is required.
 
-4. Include source references ONLY if they already exist in the answers.
-5. Do NOT invent, modify, or add new sources.
-6. Place all source references ONLY at the end of the final answer.
-7. Deduplicate sources if repeated.
+        Aggregation instructions:
 
-Failure handling:
+        1. If the answers cover different parts of the question:
+        - Combine them into a single coherent response.
+        - Preserve ALL details.
 
-8. If no usable answers are present:
-   - Respond exactly with:
-     "Sorry, I could not find any information to answer your question."
+        2. If multiple answers contain overlapping or duplicate information:
+        - Merge them carefully without removing details.
 
-Output:
+        3. If an answer is irrelevant or empty:
+        - Ignore it completely.
 
-- Return ONLY the final answer.
-- Do NOT mention sub-questions.
-- Do NOT describe your reasoning.
-"""
+        Sources and citations:
+
+        4. Include source references ONLY if they already exist in the answers.
+        5. Do NOT invent, modify, or add new sources.
+        6. Place all source references ONLY at the end of the final answer.
+        7. Deduplicate sources if repeated.
+
+        Failure handling:
+
+        8. If no usable answers are present:
+        - Respond exactly with:
+            "Sorry, I could not find any information to answer your question."
+
+        Output:
+
+        - Return ONLY the final answer.
+        - Do NOT mention sub-questions.
+        - Do NOT describe your reasoning.
+        """

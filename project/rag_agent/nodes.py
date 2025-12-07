@@ -12,21 +12,26 @@ def analyze_chat_and_summarize(state: State, llm):
         if isinstance(msg, (HumanMessage, AIMessage))
         and not getattr(msg, "tool_calls", None)
     ]
+
     if not relevant_msgs:
         return {"conversation_summary": ""}
+    
+    conversation = "Conversation history:\n"
+    for msg in relevant_msgs[-6:]:
+        role = "User" if isinstance(msg, HumanMessage) else "Assistant"
+        conversation += f"{role}: {msg.content}\n"
 
-    summary_prompt = get_conversation_summary_prompt(relevant_msgs)
-    summary_response = llm.with_config(temperature=0.2).invoke([SystemMessage(content=summary_prompt)])
+    summary_response = llm.with_config(temperature=0.2).invoke([SystemMessage(content=get_conversation_summary_prompt())] + [HumanMessage(content=conversation)])
     return {"conversation_summary": summary_response.content, "agent_answers": [{"__reset__": True}]}
 
 def analyze_and_rewrite_query(state: State, llm):
     last_message = state["messages"][-1]
     conversation_summary = state.get("conversation_summary", "")
 
-    prompt = get_query_analysis_prompt(last_message.content, conversation_summary)
+    context_section = (f"Conversation Context:\n{conversation_summary}\n" if conversation_summary.strip() else "") + f"User Query:\n{last_message.content}\n"
 
     llm_with_structure = llm.with_config(temperature=0.1).with_structured_output(QueryAnalysis)
-    response = llm_with_structure.invoke([SystemMessage(content=prompt)])
+    response = llm_with_structure.invoke([SystemMessage(content=get_query_analysis_prompt())] + [HumanMessage(content=context_section)])
 
     if response.is_clear:
         delete_all = [
@@ -80,11 +85,17 @@ def extract_final_answer(state: AgentState):
         }]
     }
 
-
 def aggregate_responses(state: State, llm):
     if not state.get("agent_answers"):
         return {"messages": [AIMessage(content="No answers were generated.")]}
 
-    aggregation_prompt = get_aggregation_prompt(state["originalQuery"],state["agent_answers"])
-    synthesis_response = llm.invoke([SystemMessage(content=aggregation_prompt)])    
+    sorted_answers = sorted(state["agent_answers"], key=lambda x: x["index"])
+
+    formatted_answers = ""
+    for i, ans in enumerate(sorted_answers, start=1):
+        formatted_answers += (f"\nAnswer {i}:\n"f"{ans['answer']}\n")
+
+    user_message = HumanMessage(content=f"""Original user question: {state["originalQuery"]}\nRetrieved answers:{formatted_answers}""")
+    synthesis_response = llm.invoke([SystemMessage(content=get_aggregation_prompt())] + [user_message])
+    
     return {"messages": [AIMessage(content=synthesis_response.content)]}
