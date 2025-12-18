@@ -13,12 +13,13 @@
   <a href="#how-it-works">How It Works</a> •
   <a href="#llm-provider-configuration">LLM Providers</a> •
   <a href="#implementation">Implementation</a> •
-  <a href="#installation--usage">Installation & Usage</a>
+  <a href="#installation--usage">Installation & Usage</a> •
+  <a href="#troubleshooting">Troubleshooting</a>
 </p>
 
 <p align="center">
   <strong>Quickstart here 👉</strong> 
-  <a href="https://colab.research.google.com/gist/GiovanniPasq/3f3408262b7ac77bc7271b0af8a5c4ae/agentic_rag_for_dummies.ipynb">
+  <a href="https://colab.research.google.com/gist/GiovanniPasq/3ebe1b347db3db9a530ef925208c64d8/agentic_rag_for_dummies.ipynb">
     <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
   </a>
 </p>
@@ -33,9 +34,9 @@
 
 <p align="center" style="line-height: 1.6;">
   <em>✨ <strong>New:</strong></em><br>
+  <em>• Multi-Agent Map-Reduce architecture for parallel query processing</em><br>
   <em>• Comprehensive PDF → Markdown conversion guide, including tool comparisons and VLM-based approaches</em><br>
-  <em>• End-to-end Gradio interface for a complete interactive RAG pipeline</em><br>
-  <em>• Multi-Agent Map-Reduce for parallel query processing</em>
+  <em>• End-to-end Gradio interface for a complete interactive RAG pipeline</em>
 </p>
 
 ## Overview
@@ -48,7 +49,7 @@ This repository demonstrates how to build an **Agentic RAG (Retrieval-Augmented 
 - 🤖 **Agent Orchestration**: Uses LangGraph to coordinate the entire workflow
 - 🧠 **Intelligent Evaluation**: Assesses relevance at the granular chunk level
 - ✅ **Self-Correction**: Re-queries if initial results are insufficient
-- 🔀 **Multi-Agent Map-Reduce**: Decomposes queries into parallel sub-queries for comprehensive answers (modular project only)
+- 🔀 **Multi-Agent Map-Reduce**: Decomposes queries into parallel sub-queries for comprehensive answers
 
 ---
 
@@ -58,7 +59,7 @@ This repository demonstrates how to build an **Agentic RAG (Retrieval-Augmented 
 Step-by-step tutorial perfect for understanding core concepts. Start here if you're new to Agentic RAG or want to experiment quickly. Focuses on the essential workflow without advanced features to keep things simple.
 
 **2️⃣ Building Path: Modular Project**  
-Modular architecture that includes **Multi-Agent Map-Reduce** for parallel query processing. Every component is independently swappable. Use this if you want to build real applications or customize the system for your needs.
+Modular architecture where each component can be independently swapped. Use this approach if you want to build real applications or customize the system to your needs.
 
 **Examples of what you can customize:**
 - **LLM Provider**: Switch from Ollama to Claude, OpenAI, or Gemini (one line change)
@@ -84,9 +85,10 @@ Most RAG tutorials show basic concepts but lack production readiness. This repos
 - Static, non-adaptive retrieval
 - Hard to customize for your use case
 - No UI interface
+- Single-threaded query processing
 
 ✅ **This repo:**
-- **Two learning paths**: Interactive notebook OR modular project
+- **Two learning paths**: Interactive notebook AND modular project
 - **Hierarchical indexing** for precision + context
 - **Conversation memory** for natural dialogue
 - **Human-in-the-loop** query clarification
@@ -132,18 +134,22 @@ The system intelligently processes the user's query:
 
 #### Stage 3: Intelligent Retrieval
 
-**Standard Workflow:**
+**Multi-Agent Map-Reduce Architecture:**
+
+When the query analysis stage identifies multiple distinct questions (either explicitly asked or decomposed from a complex query), the system automatically spawns parallel agent subgraphs using LangGraph's `Send` API. Each agent independently processes one question through the full retrieval workflow:
+
 1. Agent searches child chunks for precision
 2. Evaluates if results are sufficient
 3. Fetches parent chunks for context if needed
-4. Generates answer from complete information
+4. Extracts final answer from conversation
 5. Self-corrects and re-queries if insufficient
 
-**Multi-Agent Map-Reduce (Modular Project Only):**
+All agent responses are then aggregated into a unified answer.
 
-When the query analysis stage identifies multiple distinct questions (either explicitly asked or decomposed from a complex query), the system automatically spawns parallel agents. Each agent independently processes one question through the full retrieval workflow above, then all responses are synthesized into a unified answer.
+**Example:** *"What is JavaScript? What is Python?"* → 2 parallel agents execute simultaneously
 
-**Example:** *"What is JavaScript? What is Python?"* → 2 parallel agents
+**Single question workflow:**
+For simple queries, a single agent executes the retrieval workflow without parallelization.
 
 #### Stage 4: Response Generation
 
@@ -239,6 +245,11 @@ llm = ChatAnthropic(model="claude-3-5-sonnet-20241022", temperature=0)
 
 ## Implementation
 
+Additional details and extended explanations are available in the notebook <strong>here 👉</strong> 
+  <a href="https://colab.research.google.com/gist/GiovanniPasq/3ebe1b347db3db9a530ef925208c64d8/agentic_rag_for_dummies.ipynb">
+    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+  </a>
+
 ### Step 1: Initial Setup and Configuration
 
 Define paths and initialize core components.
@@ -261,7 +272,7 @@ os.makedirs(MARKDOWN_DIR, exist_ok=True)
 os.makedirs(PARENT_STORE_PATH, exist_ok=True)
 
 from langchain_ollama import ChatOllama
-llm = ChatOllama(model="qwen3:4b-instruct-2507-q4_K_M", temperature=0.1)
+llm = ChatOllama(model="qwen3:4b-instruct-2507-q4_K_M", temperature=0)
 
 # Dense embeddings for semantic understanding
 dense_embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
@@ -576,7 +587,7 @@ llm_with_tools = llm.bind_tools([search_child_chunks, retrieve_parent_chunks])
 
 ### Step 6: Define System Prompts
 
-Define the system prompts for conversation summarization, query analysis, and RAG agent reasoning.
+Define the system prompts for conversation summarization, query analysis, RAG agent reasoning, and response aggregation.
 
 ```python
 def get_conversation_summary_prompt() -> str:
@@ -627,7 +638,7 @@ def get_query_analysis_prompt() -> str:
         - If the intent is unclear or meaningless, mark as unclear.
         """
 
-def get_rag_agent_system_prompt() -> str:
+def get_rag_agent_prompt() -> str:
     return """
         You are a retrieval-augmented assistant.
 
@@ -653,23 +664,81 @@ def get_rag_agent_system_prompt() -> str:
 
         If no relevant information is found after the retry, say so.
         """
+
+def get_aggregation_prompt() -> str:
+    return """
+        You are merging multiple retrieved answers into a final response.
+
+        Rules:
+
+        - Use ONLY the content provided in the retrieved answers.
+        - Do NOT add new information, explanations, or assumptions.
+        - Do NOT rephrase or paraphrase unless combining overlapping answers is required.
+
+        Aggregation instructions:
+
+        1. If the answers cover different parts of the question:
+        - Combine them into a single coherent response.
+        - Preserve ALL details.
+
+        2. If multiple answers contain overlapping or duplicate information:
+        - Merge them carefully without removing details.
+
+        3. If an answer is irrelevant or empty:
+        - Ignore it completely.
+
+        Sources and citations:
+
+        4. Include source references ONLY if they already exist in the answers.
+        5. Do NOT invent, modify, or add new sources.
+        6. Place all source references ONLY at the end of the final answer.
+        7. Deduplicate sources if repeated.
+
+        Failure handling:
+
+        8. If no usable answers are present:
+        - Respond exactly with:
+            "Sorry, I could not find any information to answer your question."
+
+        Output:
+
+        - Return ONLY the final answer.
+        - Do NOT mention sub-questions.
+        - Do NOT describe your reasoning.
+        """
 ```
 
 ---
 
 ### Step 7: Define State and Data Models
 
-Create the state structure for conversation tracking.
+Create the state structure for conversation tracking and agent execution.
 
 ```python
 from langgraph.graph import MessagesState
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Annotated
+
+def accumulate_or_reset(existing: List[dict], new: List[dict]) -> List[dict]:
+    """Custom reducer that allows resetting agent answers"""
+    if new and any(item.get('__reset__') for item in new):
+        return []
+    return existing + new
 
 class State(MessagesState):
-    """Extended state with conversation tracking"""
-    questionIsClear: bool
+    """State for main agent graph"""
+    questionIsClear: bool = False
     conversation_summary: str = ""
+    originalQuery: str = "" 
+    rewrittenQuestions: List[str] = []
+    agent_answers: Annotated[List[dict], accumulate_or_reset] = []
+
+class AgentState(MessagesState):
+    """State for individual agent subgraph"""
+    question: str = ""
+    question_index: int = 0
+    final_answer: str = ""
+    agent_answers: List[dict] = []
 
 class QueryAnalysis(BaseModel):
     """Structured output for query analysis"""
@@ -685,6 +754,10 @@ class QueryAnalysis(BaseModel):
 Create the processing nodes for the LangGraph workflow.
 
 ```python
+from langgraph.types import Send
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, RemoveMessage
+from typing import Literal
+
 def analyze_chat_and_summarize(state: State):
     """
     Analyzes chat history and summarizes key points for context.
@@ -722,25 +795,21 @@ def analyze_and_rewrite_query(state: State):
     llm_with_structure = llm.with_config(temperature=0.1).with_structured_output(QueryAnalysis)
     response = llm_with_structure.invoke([SystemMessage(content=get_query_analysis_prompt())] + [HumanMessage(content=context_section)])
 
-    if response.is_clear:
+    if len(response.questions) > 0 and response.is_clear:
         # Remove all non-system messages
         delete_all = [
             RemoveMessage(id=m.id)
             for m in state["messages"]
             if not isinstance(m, SystemMessage)
         ]
-
-        rewritten = (
-            "\n".join([f"{i+1}. {q}" for i, q in enumerate(response.questions)])
-            if len(response.questions) > 1
-            else response.questions[0]
-        )
         return {
             "questionIsClear": True,
-            "messages": delete_all + [HumanMessage(content=rewritten)]
+            "messages": delete_all,
+            "originalQuery": last_message.content,
+            "rewrittenQuestions": response.questions
         }
     else:
-        clarification = response.clarification_needed or "I need more information to understand your question."
+        clarification = response.clarification_needed if (response.clarification_needed and len(response.clarification_needed.strip()) > 10) else "I need more information to understand your question."
         return {
             "questionIsClear": False,
             "messages": [AIMessage(content=clarification)]
@@ -750,74 +819,152 @@ def human_input_node(state: State):
     """Placeholder node for human-in-the-loop interruption"""
     return {}
 
-def route_after_rewrite(state: State) -> Literal["agent", "human_input"]:
+def route_after_rewrite(state: State) -> Literal["human_input", "process_question"]:
     """Route to agent if question is clear, otherwise wait for human input"""
-    return "agent" if state.get("questionIsClear", False) else "human_input"
+    if not state.get("questionIsClear", False):
+        return "human_input"
+    else:
+        # Spawn parallel agents for each sub-question using Send API
+        return [
+            Send("process_question", {"question": query, "question_index": idx, "messages": []})
+            for idx, query in enumerate(state["rewrittenQuestions"])
+        ]
 
-def agent_node(state: State):
+def agent_node(state: AgentState):
     """Main agent node that processes queries using tools"""
-    response = llm_with_tools.invoke([SystemMessage(content=get_rag_agent_system_prompt())] + state["messages"])
-    return {"messages": [response]}
+    sys_msg = SystemMessage(content=get_rag_agent_prompt())    
+    if not state.get("messages"):
+        human_msg = HumanMessage(content=state["question"])
+        response = llm_with_tools.invoke([sys_msg] + [human_msg])
+        return {"messages": [human_msg, response]}
+    
+    return {"messages": [llm_with_tools.invoke([sys_msg] + state["messages"])]}
+
+def extract_final_answer(state: AgentState):
+    """Extract final answer from agent conversation"""
+    for msg in reversed(state["messages"]):
+        if isinstance(msg, AIMessage) and msg.content and not msg.tool_calls:
+            res = {
+                "final_answer": msg.content,
+                "agent_answers": [{
+                    "index": state["question_index"],
+                    "question": state["question"],
+                    "answer": msg.content
+                }]
+            }
+            return res
+    return {
+        "final_answer": "Unable to generate an answer.",
+        "agent_answers": [{
+            "index": state["question_index"],
+            "question": state["question"],
+            "answer": "Unable to generate an answer."
+        }]
+    }
+
+def aggregate_responses(state: State):
+    """Merge multiple agent responses into final answer"""
+    if not state.get("agent_answers"):
+        return {"messages": [AIMessage(content="No answers were generated.")]}
+
+    sorted_answers = sorted(state["agent_answers"], key=lambda x: x["index"])
+
+    formatted_answers = ""
+    for i, ans in enumerate(sorted_answers, start=1):
+        formatted_answers += f"\nAnswer {i}:\n{ans['answer']}\n"
+
+    user_message = HumanMessage(content=f"""Original user question: {state["originalQuery"]}\nRetrieved answers:{formatted_answers}""")
+    synthesis_response = llm.invoke([SystemMessage(content=get_aggregation_prompt())] + [user_message])
+    
+    return {"messages": [AIMessage(content=synthesis_response.content)]}
 ```
 
 **Why this architecture?**
 - **Summarization** maintains conversational context without overwhelming the LLM
-- **Query rewriting** ensures search queries are precise and unambiguous
+- **Query rewriting** ensures search queries are precise and unambiguous, using context intelligently
 - **Human-in-the-loop** catches unclear queries before wasting retrieval resources
-- **Routing logic** determines whether clarification is needed
+- **Parallel execution** with `Send` API spawns independent agent subgraphs for each sub-question
+- **Answer extraction** ensures we get clean final answers from agent tool-calling conversations
+- **Aggregation** merges all parallel results into a coherent single response
 
 ---
 
 ### Step 9: Build the LangGraph Agent
 
-Assemble the complete workflow graph with conversation memory.
+Assemble the complete workflow graph with conversation memory and multi-agent architecture.
 
 ```python
-from langgraph.graph import START, StateGraph
+from langgraph.graph import START, END, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.checkpoint.memory import InMemorySaver
+from IPython.display import Image, display
 
 # Initialize checkpointer for conversation memory
 checkpointer = InMemorySaver()
 
-# Create graph builder
+# Build agent subgraph (handles individual questions)
+agent_builder = StateGraph(AgentState)
+agent_builder.add_node("agent", agent_node)
+agent_builder.add_node("tools", ToolNode([search_child_chunks, retrieve_parent_chunks]))
+agent_builder.add_node("extract_answer", extract_final_answer)
+
+agent_builder.add_edge(START, "agent")    
+agent_builder.add_conditional_edges("agent", tools_condition, {"tools": "tools", END: "extract_answer"})
+agent_builder.add_edge("tools", "agent")    
+agent_builder.add_edge("extract_answer", END)    
+agent_subgraph = agent_builder.compile()
+
+# Build main graph (orchestrates workflow)
 graph_builder = StateGraph(State)
 
 # Add nodes
 graph_builder.add_node("summarize", analyze_chat_and_summarize)
 graph_builder.add_node("analyze_rewrite", analyze_and_rewrite_query)
 graph_builder.add_node("human_input", human_input_node)
-graph_builder.add_node("agent", agent_node)
-graph_builder.add_node("tools", ToolNode([search_child_chunks, retrieve_parent_chunks]))
+graph_builder.add_node("process_question", agent_subgraph)
+graph_builder.add_node("aggregate", aggregate_responses)
 
 # Define edges
 graph_builder.add_edge(START, "summarize")
 graph_builder.add_edge("summarize", "analyze_rewrite")
 graph_builder.add_conditional_edges("analyze_rewrite", route_after_rewrite)
 graph_builder.add_edge("human_input", "analyze_rewrite")
-graph_builder.add_conditional_edges("agent", tools_condition)
-graph_builder.add_edge("tools", "agent")
+graph_builder.add_edge(["process_question"], "aggregate")
+graph_builder.add_edge("aggregate", END)
 
-# Compile graph with checkpointer
+# Compile graph with checkpointer and interruption
 agent_graph = graph_builder.compile(
     checkpointer=checkpointer,
     interrupt_before=["human_input"]
 )
 ```
 
-**Graph flow:**
-1. **START** → `summarize` (analyze conversation history)
-2. `summarize` → `analyze_rewrite` (rewrite query with context)
-3. `analyze_rewrite` → `agent` (if clear) OR `human_input` (if unclear)
-4. `human_input` → `analyze_rewrite` (after user clarifies)
-5. `agent` → `tools` (if needs retrieval) OR END (if answer ready)
-6. `tools` → `agent` (return retrieved data)
+**Graph architecture explained:**
+
+**Agent Subgraph** (processes individual questions):
+- START → `agent` (invoke LLM with tools)
+- `agent` → `tools` (if tool calls needed) OR `extract_answer` (if done)
+- `tools` → `agent` (return tool results)
+- `extract_answer` → END (clean final answer)
+
+**Main Graph** (orchestrates complete workflow):
+1. START → `summarize` (extract conversation context from history)
+2. `summarize` → `analyze_rewrite` (rewrite query with context, check clarity)
+3. `analyze_rewrite` → `human_input` (if unclear) OR spawn parallel `process_question` agents (if clear)
+4. `human_input` → `analyze_rewrite` (after user provides clarification)
+5. All `process_question` agents → `aggregate` (merge all responses)
+6. `aggregate` → END (return final synthesized answer)
+
+**Key features:**
+- **Parallel execution**: Multiple agent subgraphs run simultaneously using LangGraph's `Send` API
+- **Human-in-the-loop**: Graph pauses at `human_input` node when queries are unclear
+- **Conversation memory**: `InMemorySaver` checkpointer maintains state across interactions
 
 ---
 
 ### Step 10: Create Chat Interface
 
-Build a Gradio interface with conversation persistence. For a complete end-to-end pipeline Gradio interface, including document ingestion, please refer to the project folder
+Build a Gradio interface with conversation persistence and human-in-the-loop support. For a complete end-to-end pipeline Gradio interface, including document ingestion, please refer to the project folder
 
 
 ```python
@@ -942,6 +1089,10 @@ The easiest way to get started:
 #### 1. Install Dependencies
 
 ```bash
+# Clone the repository
+git clone <repo-url>
+cd agentic-rag-for-dummies
+
 # Create virtual environment (recommended)
 python -m venv venv
 
@@ -1052,6 +1203,18 @@ Agent: [Retrieves and answers with specific information]
 
 ---
 
+## Troubleshooting
+
+| Area | Common Problems | Suggested Solutions |
+|------|----------------|------------------|
+| **Model Selection** | - Responses ignore instructions<br>- Tools (retrieval/search) used incorrectly<br>- Poor context understanding<br>- Hallucinations or incomplete aggregation | - Use more capable LLMs<br>- Prefer models 7B+ for better reasoning<br>- Consider cloud-based models if local models are limited |
+| **System Prompt Behavior** | - Model answers without retrieving documents<br>- Query rewriting loses context<br>- Aggregation introduces hallucinations | - Make retrieval explicit in system prompts<br>- Keep query rewriting close to user intent<br>- Enforce strict aggregation rules |
+| **Retrieval Configuration** | - Relevant documents not retrieved<br>- Too much irrelevant information | - Increase retrieved chunks (`k`) or lower similarity thresholds to improve recall<br>- Reduce `k` or increase thresholds to improve precision |
+| **Chunk Size / Document Splitting** | - Answers lack context or feel fragmented<br>- Retrieval is slow or embedding costs are high | - Increase chunk & parent sizes for more context<br>- Decrease chunk sizes to improve speed and reduce costs |
+| **Temperature & Consistency** | - Responses inconsistent or overly creative<br>- Responses too rigid or repetitive | - Set temperature to `0` for factual, consistent output<br>- Slightly increase temperature for summarization or analysis tasks |
+| **Embedding Model Quality** | - Poor semantic search<br>- Weak performance on domain-specific or multilingual docs | - Use higher-quality or domain-specific embeddings<br>- Re-index all documents after changing embeddings |
+---
+
 ## License
 
 MIT License - Feel free to use this for learning and building your own projects!
@@ -1060,4 +1223,4 @@ MIT License - Feel free to use this for learning and building your own projects!
 
 ## Contributing
 
-Contributions are welcome! Open an issue or submit a pull request.
+Contributions are welcome! Open an issue or submit a pull request!
