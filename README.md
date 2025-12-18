@@ -960,6 +960,8 @@ agent_graph = graph_builder.compile(
 - **Human-in-the-loop**: Graph pauses at `human_input` node when queries are unclear
 - **Conversation memory**: `InMemorySaver` checkpointer maintains state across interactions
 
+The architecture flow diagram can be viewed [here](https://github.com/GiovanniPasq/agentic-rag-for-dummies/blob/main/assets/agentic_rag_workflow.png)
+
 ---
 
 ### Step 10: Create Chat Interface
