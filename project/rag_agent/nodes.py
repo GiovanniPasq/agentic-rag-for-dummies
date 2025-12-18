@@ -33,7 +33,7 @@ def analyze_and_rewrite_query(state: State, llm):
     llm_with_structure = llm.with_config(temperature=0.1).with_structured_output(QueryAnalysis)
     response = llm_with_structure.invoke([SystemMessage(content=get_query_analysis_prompt())] + [HumanMessage(content=context_section)])
 
-    if response.is_clear:
+    if len(response.questions) > 0 and response.is_clear:
         delete_all = [
             RemoveMessage(id=m.id)
             for m in state["messages"]
@@ -46,7 +46,7 @@ def analyze_and_rewrite_query(state: State, llm):
             "rewrittenQuestions": response.questions
         }
     else:
-        clarification = response.clarification_needed or "I need more information to understand your question."
+        clarification = response.clarification_needed if (response.clarification_needed and len(response.clarification_needed.strip()) > 10) else "I need more information to understand your question."
         return {
             "questionIsClear": False,
             "messages": [AIMessage(content=clarification)]
@@ -56,7 +56,7 @@ def human_input_node(state: State):
     return {}
 
 def agent_node(state: AgentState, llm_with_tools):
-    sys_msg = SystemMessage(content=get_rag_agent_system_prompt())    
+    sys_msg = SystemMessage(content=get_rag_agent_prompt())    
     if not state.get("messages"):
         human_msg = HumanMessage(content=state["question"])
         response = llm_with_tools.invoke([sys_msg] + [human_msg])

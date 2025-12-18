@@ -46,7 +46,7 @@ def get_query_analysis_prompt() -> str:
         - If the intent is unclear or meaningless, mark as unclear.
         """
 
-def get_rag_agent_system_prompt() -> str:
+def get_rag_agent_prompt() -> str:
     return """
         You are a retrieval-augmented assistant.
 
