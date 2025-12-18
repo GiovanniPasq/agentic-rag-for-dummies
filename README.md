@@ -322,7 +322,7 @@ def ensure_collection(collection_name):
 
 Convert the PDFs to Markdown. For more details about other techniques use this companion notebook:
 
-📘 **[PDF to Markdown Converter](https://colab.research.google.com/gist/GiovanniPasq/a5f749f9f9f03f0ca90f8b480ec952ac/pdf_to_md.ipynb)**
+📘 **[PDF to Markdown Converter](https://colab.research.google.com/gist/GiovanniPasq/0e41602e8e06ac0931de25e2cf370fba/pdf_to_md.ipynb)**
 
 ```python
 import os
