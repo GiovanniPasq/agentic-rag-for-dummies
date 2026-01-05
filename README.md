@@ -19,7 +19,7 @@
 
 <p align="center">
   <strong>Quickstart here 👉</strong> 
-  <a href="https://colab.research.google.com/gist/GiovanniPasq/3ebe1b347db3db9a530ef925208c64d8/agentic_rag_for_dummies.ipynb">
+  <a href="https://colab.research.google.com/gist/GiovanniPasq/682c59bfcdbf928675255535df64772a/agentic_rag_for_dummies.ipynb">
     <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
   </a>
 </p>
@@ -246,7 +246,7 @@ llm = ChatAnthropic(model="claude-3-5-sonnet-20241022", temperature=0)
 ## Implementation
 
 Additional details and extended explanations are available in the notebook <strong>here 👉</strong> 
-  <a href="https://colab.research.google.com/gist/GiovanniPasq/3ebe1b347db3db9a530ef925208c64d8/agentic_rag_for_dummies.ipynb">
+  <a href="https://colab.research.google.com/gist/GiovanniPasq/682c59bfcdbf928675255535df64772a/agentic_rag_for_dummies.ipynb">
     <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
   </a>
 
@@ -532,7 +532,7 @@ from typing import List
 from langchain_core.tools import tool
 
 @tool
-def search_child_chunks(query: str, k: int = 5) -> List[dict]:
+def search_child_chunks(query: str, k: int) -> List[dict]:
     """Search for the top K most relevant child chunks.
 
     Args:
@@ -781,7 +781,7 @@ def analyze_chat_and_summarize(state: State):
         conversation += f"{role}: {msg.content}\n"
 
     summary_response = llm.with_config(temperature=0.2).invoke([SystemMessage(content=get_conversation_summary_prompt())] + [HumanMessage(content=conversation)])
-    return {"conversation_summary": summary_response.content}
+    return {"conversation_summary": summary_response.content, "agent_answers": [{"__reset__": True}]}
 
 def analyze_and_rewrite_query(state: State):
     """
