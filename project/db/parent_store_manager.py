@@ -1,3 +1,4 @@
+import re
 import json
 import shutil
 import config
@@ -28,18 +29,22 @@ class ParentStoreManager:
         )
         return json.loads(file_path.read_text(encoding="utf-8"))
     
-    def load_many(self, parent_ids: List[str]) -> List[Dict]:
-        unique_ids = sorted(set(parent_ids))
-        results = []
-        
-        for parent_id in unique_ids:
-            data = self.load(parent_id)
-            results.append({
+    def load_content(self, parent_id: str) -> Dict:
+        data = self.load(parent_id)
+        return {
                 "content": data["page_content"],
                 "parent_id": parent_id,
                 "metadata": data["metadata"]
-            })
-        return results
+            }
+
+    @staticmethod
+    def _get_sort_key(id_str):
+        match = re.search(r'_parent_(\d+)$', id_str)
+        return int(match.group(1)) if match else 0
+
+    def load_content_many(self, parent_ids: List[str]) -> List[Dict]:
+        unique_ids = set(parent_ids)
+        return [self.load_content(pid) for pid in sorted(unique_ids, key=self._get_sort_key)]
     
     def clear_store(self) -> None:
         if self.__store_path.exists():

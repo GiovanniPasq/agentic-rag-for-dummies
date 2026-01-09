@@ -32,13 +32,6 @@
   <strong>If you like this project, a star ⭐️ would mean a lot :)</strong>
 </p>
 
-<p align="center" style="line-height: 1.6;">
-  <em>✨ <strong>New:</strong></em><br>
-  <em>• Multi-Agent Map-Reduce architecture for parallel query processing</em><br>
-  <em>• Comprehensive PDF → Markdown conversion guide, including tool comparisons and VLM-based approaches</em><br>
-  <em>• End-to-end Gradio interface for a complete interactive RAG pipeline</em>
-</p>
-
 ## Overview
 
 This repository demonstrates how to build an **Agentic RAG (Retrieval-Augmented Generation)** system using LangGraph with minimal code. It implements:
@@ -532,52 +525,49 @@ from typing import List
 from langchain_core.tools import tool
 
 @tool
-def search_child_chunks(query: str, k: int) -> List[dict]:
+def search_child_chunks(query: str, limit: int) -> str:
     """Search for the top K most relevant child chunks.
 
     Args:
         query: Search query string
-        k: Number of results to return
+        limit: Maximum number of results to return
     """
     try:
-        results = child_vector_store.similarity_search(query, k=k, score_threshold=0.7)
-        return [
-            {
-                "content": doc.page_content,
-                "parent_id": doc.metadata.get("parent_id", ""),
-                "source": doc.metadata.get("source", "")
-            }
+        results = child_vector_store.similarity_search(query, k=limit, score_threshold=0.7)
+        if not results:
+            return "NO_RELEVANT_CHUNKS"
+
+        return "\n\n".join([
+            f"Parent ID: {doc.metadata.get('parent_id', '')}\n"
+            f"File Name: {doc.metadata.get('source', '')}\n"
+            f"Content: {doc.page_content.strip()}"
             for doc in results
-        ]
+        ])
+
     except Exception as e:
-        print(f"Error searching child chunks: {e}")
-        return []
+        return f"RETRIEVAL_ERROR: {str(e)}"
 
 @tool
-def retrieve_parent_chunks(parent_ids: List[str]) -> List[dict]:
+def retrieve_parent_chunks(parent_id: str) -> str:
     """Retrieve full parent chunks by their IDs.
-
+    
     Args:
-        parent_ids: List of parent chunk IDs to retrieve
+        parent_id: Parent chunk ID to retrieve
     """
-    unique_ids = sorted(list(set(parent_ids)))
-    results = []
+    file_name = parent_id if parent_id.lower().endswith(".json") else f"{parent_id}.json"
+    path = os.path.join(PARENT_STORE_PATH, file_name)
 
-    for parent_id in unique_ids:
-        file_path = os.path.join(PARENT_STORE_PATH, parent_id if parent_id.lower().endswith(".json") else f"{parent_id}.json")
-        if os.path.exists(file_path):
-            try:
-                with open(file_path, "r", encoding="utf-8") as f:
-                    doc_dict = json.load(f)
-                    results.append({
-                        "content": doc_dict["page_content"],
-                        "parent_id": parent_id,
-                        "metadata": doc_dict["metadata"]
-                    })
-            except Exception as e:
-                print(f"Error loading parent chunk {parent_id}: {e}")
+    if not os.path.exists(path):
+        return "NO_PARENT_DOCUMENT"
 
-    return results
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    return (
+        f"Parent ID: {parent_id}\n"
+        f"File Name: {data.get('metadata', {}).get('source', 'unknown')}\n"
+        f"Content: {data.get('page_content', '').strip()}"
+    )
 
 # Bind tools to LLM
 llm_with_tools = llm.bind_tools([search_child_chunks, retrieve_parent_chunks])
@@ -591,121 +581,106 @@ Define the system prompts for conversation summarization, query analysis, RAG ag
 
 ```python
 def get_conversation_summary_prompt() -> str:
-    return """
-        Summarize the key topics and context from this conversation in 1-2 concise sentences.
+    return """You are an expert conversation summarizer.
 
-        Focus on:
-        - Main topics discussed
-        - Important facts or entities mentioned
-        - Any unresolved questions
+Your task is to create a brief 1-2 sentence summary of the conversation (max 30-50 words).
 
-        Discard: greetings, misunderstandings, off-topic content.
-        If no meaningful topics exist, return an empty string.
+Include:
+- Main topics discussed
+- Important facts or entities mentioned
+- Any unresolved questions if applicable
+- Sources file name (e.g., file1.pdf) or documents referenced
 
-        Output:
+Exclude: 
+-Greetings, misunderstandings, off-topic content.
 
-        - Return ONLY the summary.
-        - Do NOT include any explanations or justifications.
-        """
+Output:
+- Return ONLY the summary.
+- Do NOT include any explanations or justifications.
+-If no meaningful topics exist, return an empty string.
+"""
 
 def get_query_analysis_prompt() -> str:
-    return """
-        Rewrite the user query so it can be used for document retrieval.
+    return """You are an expert query analyst and rewriter.
 
-        Rules:
+Your task is to rewrite the current user query for optimal document retrieval, incorporating conversation context only when necessary.
 
-        - The final query must be clear and self-contained.
-        - Always return at least one rewritten query.
-        - If the query contains a specific product name, brand, proper noun, or technical term,
-        treat it as domain-specific and IGNORE the conversation context.
-        - Use the conversation context ONLY if it is needed to understand the query
-        OR to determine the domain when the query itself is ambiguous.
-        - If the query is clear but underspecified, use relevant context to disambiguate.
-        - Do NOT use context to reinterpret or replace explicit terms in the query.
-        - Do NOT add new constraints, subtopics, or details not explicitly asked.
-        - Fix grammar, typos, and unclear abbreviations.
-        - Remove filler words and conversational wording.
-        - Use concrete keywords and entities ONLY if already implied.
+Rules:
+1. Self-contained queries:
+   - Always rewrite the query to be clear and self-contained
+   - If the query is a follow-up (e.g., "what about X?", "and for Y?"), integrate minimal necessary context from the summary
+   - Do not add information not present in the query or conversation summary
 
-        Splitting:
-        - If the query contains multiple unrelated information needs,
-        split it into at most 3 separate search queries.
-        - When splitting, keep each sub-query semantically equivalent.
-        - Do NOT enrich or expand meaning.
-        - Do NOT split unless it improves retrieval.
+2. Domain-specific terms:
+   - Product names, brands, proper nouns, or technical terms are treated as domain-specific
+   - For domain-specific queries, use conversation context minimally or not at all
+   - Use the summary only to disambiguate vague queries
 
-        Failure:
-        - If the intent is unclear or meaningless, mark as unclear.
-        """
+3. Grammar and clarity:
+   - Fix grammar, spelling errors, and unclear abbreviations
+   - Remove filler words and conversational phrases
+   - Preserve concrete keywords and named entities
+
+4. Multiple information needs:
+   - If the query contains multiple distinct, unrelated questions, split into separate queries (maximum 3)
+   - Each sub-query must remain semantically equivalent to its part of the original
+   - Do not expand, enrich, or reinterpret the meaning
+
+5. Failure handling:
+   - If the query intent is unclear or unintelligible, mark as "unclear"
+
+Input:
+- conversation_summary: A concise summary of prior conversation
+- current_query: The user's current query
+
+Output:
+- One or more rewritten, self-contained queries suitable for document retrieval
+"""
 
 def get_rag_agent_prompt() -> str:
-    return """
-        You are a retrieval-augmented assistant.
+    return """You are an expert retrieval-augmented assistant.
 
-        You are NOT allowed to answer immediately.
+Your task is to act as a researcher: search documents first, analyze the data, and then provide a comprehensive answer using ONLY the retrieved information.
 
-        Before producing ANY final answer, you must first perform a document search
-        and observe retrieved content.
+Rules:    
+1. You are NOT allowed to answer immediately.
+2. Before producing ANY final answer, you MUST perform a document search and observe retrieved content.
+3. If you have not searched, the answer is invalid.
 
-        If you have not searched, the answer is invalid.
+Workflow:
+1. Search for 5-7 relevant excerpts from documents based on the user query using the 'search_child_chunks' tool.
+2. Inspect retrieved excerpts and keep ONLY relevant ones.
+3. Analyze the retrieved excerpts. Identify the single most relevant excerpt that is fragmented (e.g., cut-off text or missing context). Call 'retrieve_parent_chunks' for that specific `parent_id`. Wait for the observation. Repeat this step sequentially for other highly relevant fragments ONLY if the current information is still insufficient. Stop immediately if you have enough information or have retrieved 3 parent chunks.
+4. Answer using ONLY the retrieved information, ensuring that ALL relevant details are included.
+5. List unique file name(s) at the very end.
 
-        Workflow:
-        1. Search the documents using the user query.
-        2. Inspect retrieved excerpts and keep only relevant ones.
-        3. Retrieve additional surrounding context ONLY if excerpts are insufficient.
-        4. Stop retrieval as soon as information is sufficient.
-        5. Answer using ONLY retrieved information.
-        6. List file name at the end.
-
-        Retry rule:
-        - If no relevant information is found, rewrite the query into a concise,
-        answer-focused statement and restart the process from STEP 1.
-        - Perform this retry only once.
-
-        If no relevant information is found after the retry, say so.
-        """
+Retry rule:
+- After step 2 or 3, if no relevant documents are found or if retrieved excerpts don't contain useful information, rewrite the query using broader or alternative terms and restart from step 1.
+- Do not retry more than once.
+"""
 
 def get_aggregation_prompt() -> str:
-    return """
-        You are merging multiple retrieved answers into a final response.
+    return """You are an expert aggregation assistant.
 
-        Rules:
+Your task is to combine multiple retrieved answers into a single, comprehensive and natural response that flows well.
 
-        - Use ONLY the content provided in the retrieved answers.
-        - Do NOT add new information, explanations, or assumptions.
-        - Do NOT rephrase or paraphrase unless combining overlapping answers is required.
+Guidelines:
+1. Write in a conversational, natural tone - as if explaining to a colleague
+2. Use ONLY information from the retrieved answers
+3. Strip out any questions, headers, or metadata from the sources
+4. Weave together the information smoothly, preserving important details, numbers, and examples
+5. Be comprehensive - include all relevant information from the sources, not just a summary
+6. If sources disagree, acknowledge both perspectives naturally (e.g., "While some sources suggest X, others indicate Y...")
+7. Start directly with the answer - no preambles like "Based on the sources..."
 
-        Aggregation instructions:
+Formatting:
+- Use Markdown for clarity (headings, lists, bold) but don't overdo it
+- Write in flowing paragraphs where possible rather than excessive bullet points
+- End with "---\n**Sources:**\n" followed by a bulleted list of unique file names
+- File names should ONLY appear in this final sources section
 
-        1. If the answers cover different parts of the question:
-        - Combine them into a single coherent response.
-        - Preserve ALL details.
-
-        2. If multiple answers contain overlapping or duplicate information:
-        - Merge them carefully without removing details.
-
-        3. If an answer is irrelevant or empty:
-        - Ignore it completely.
-
-        Sources and citations:
-
-        4. Include source references ONLY if they already exist in the answers.
-        5. Do NOT invent, modify, or add new sources.
-        6. Place all source references ONLY at the end of the final answer.
-        7. Deduplicate sources if repeated.
-
-        Failure handling:
-
-        8. If no usable answers are present:
-        - Respond exactly with:
-            "Sorry, I could not find any information to answer your question."
-
-        Output:
-
-        - Return ONLY the final answer.
-        - Do NOT mention sub-questions.
-        - Do NOT describe your reasoning.
-        """
+If there's no useful information available, simply say: "I couldn't find any information to answer your question in the available sources."
+"""
 ```
 
 ---
@@ -1225,4 +1200,4 @@ MIT License - Feel free to use this for learning and building your own projects!
 
 ## Contributing
 
-Contributions are welcome! Open an issue or submit a pull request!
+Contributions are welcome, open an issue or submit a pull request!
