@@ -238,10 +238,7 @@ llm = ChatAnthropic(model="claude-3-5-sonnet-20241022", temperature=0)
 
 ## Implementation
 
-Additional details and extended explanations are available in the notebook <strong>here 👉</strong> 
-  <a href="https://colab.research.google.com/gist/GiovanniPasq/ddfc4a09d16b5b97c5c532b5c49f7789/agentic_rag_for_dummies.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
+Additional details and extended explanations are available in the notebook [here](Agentic_Rag_For_Dummies.ipynb)
 
 ### Step 1: Initial Setup and Configuration
 
@@ -313,9 +310,7 @@ def ensure_collection(collection_name):
 
 ### Step 3: PDFs to Markdown
 
-Convert the PDFs to Markdown. For more details about other techniques use this companion notebook:
-
-📘 **[PDF to Markdown Converter](https://colab.research.google.com/gist/GiovanniPasq/0e41602e8e06ac0931de25e2cf370fba/pdf_to_md.ipynb)**
+Convert the PDFs to Markdown. For more details about other techniques use this companion [notebook](pdf_to_md.ipynb)
 
 ```python
 import os
@@ -935,7 +930,7 @@ agent_graph = graph_builder.compile(
 - **Human-in-the-loop**: Graph pauses at `human_input` node when queries are unclear
 - **Conversation memory**: `InMemorySaver` checkpointer maintains state across interactions
 
-The architecture flow diagram can be viewed [here](https://github.com/GiovanniPasq/agentic-rag-for-dummies/blob/main/assets/agentic_rag_workflow.png)
+The architecture flow diagram can be viewed [here](./assets/agentic_rag_workflow.png)
 
 ---
 
@@ -1034,7 +1029,7 @@ project/
 - **Graph Logic**: Customize conditional routing in `edges.py` and node processing in `nodes.py`
 
 #### **Document Processing**
-- **Markdown Conversion** (`util.py`): Replace PDF conversion tools with alternatives (e.g., Docling, PaddleOCR). More details [here](https://colab.research.google.com/gist/GiovanniPasq/a5f749f9f9f03f0ca90f8b480ec952ac/pdf_to_md.ipynb)
+- **Markdown Conversion** (`util.py`): Replace PDF conversion tools with alternatives (e.g., Docling, PaddleOCR). More details [here](pdf_to_md.ipynb)
 - **Chunking Strategy** (`document_chunker.py`): Implement custom chunking algorithms (e.g., semantic or hybrid approaches)
 
 This modular design ensures flexibility for experimenting with different RAG techniques, LLM providers, and document processing pipelines.
