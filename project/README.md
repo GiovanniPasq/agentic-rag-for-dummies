@@ -86,6 +86,7 @@ PDF → Markdown Conversion → Parent/Child Chunking → Vector Indexing → Ag
 | File | Purpose |
 |------|---------|
 | `project/rag_agent/graph.py` | Graph builder and compilation logic |
+| `project/rag_agent/graph_state.py` | Shared and per-agent graph state definitions and answer accumulation/reset logic|
 | `project/rag_agent/nodes.py` | Node implementations (summarize, rewrite, agent execution, aggregate) |
 | `project/rag_agent/edges.py` | Conditional edge routing logic (e.g., routing based on query clarity) |
 | `project/rag_agent/tools.py` | Retrieval tools (`search_child_chunks`, `retrieve_parent_chunks`) |
@@ -96,6 +97,7 @@ PDF → Markdown Conversion → Parent/Child Chunking → Vector Indexing → Ag
 
 | File | Purpose |
 |------|---------|
+| `project/ui/css.py` | Custom CSS styling for the Gradio interface |
 | `project/ui/gradio_app.py` | Gradio UI implementation with document upload and chat |
 
 ---
