@@ -62,7 +62,7 @@ PDF → Markdown Conversion → Parent/Child Chunking → Vector Indexing → Ag
 |------|---------|
 | `project/app.py` | Application entry point, launches Gradio UI |
 | `project/config.py` | **Central configuration hub** - edit this for provider/model/chunking changes |
-| `project/util.py` | PDF to Markdown conversion using `pymupdf4llm` |
+| `project/utils.py` | PDF to Markdown conversion and context token estimation |
 | `project/document_chunker.py` | Parent/child splitting logic with cleaning and merging rules |
 | `project/Dockerfile` | Dockerfile with Ollama for local deployment |
 
@@ -131,13 +131,24 @@ LLM_MODEL = "qwen3:4b-instruct-2507-q4_K_M"
 LLM_TEMPERATURE = 0  # 0 = deterministic, 1 = creative
 ```
 
+### Agent Configuration
+```python
+# Hard limits to prevent infinite loops
+MAX_TOOL_CALLS = 8       # Maximum tool calls per agent run
+MAX_ITERATIONS = 10      # Maximum agent loop iterations
+
+# Context compression thresholds
+BASE_TOKEN_THRESHOLD = 2000     # Initial token threshold for compression
+TOKEN_GROWTH_FACTOR = 0.9       # Multiplier applied after each compression
+```
+
 ### Text Splitter Configuration
 
 ```python
 CHILD_CHUNK_SIZE = 500              # Size of chunks used for retrieval
 CHILD_CHUNK_OVERLAP = 100           # Overlap between chunks (prevents context loss)
 MIN_PARENT_SIZE = 2000              # Minimum parent chunk size
-MAX_PARENT_SIZE = 10000             # Maximum parent chunk size
+MAX_PARENT_SIZE = 4000             # Maximum parent chunk size
 
 # Markdown header splitting strategy
 HEADERS_TO_SPLIT_ON = [
@@ -192,7 +203,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 llm = ChatGoogleGenerativeAI(model=config.LLM_MODEL, temperature=config.LLM_TEMPERATURE)
 ```
 
-## 2. Multi-Provider Configuration
+### 2. Multi-Provider Configuration
 
 This approach allows you to maintain multiple provider configurations and switch between them easily.
 
@@ -297,7 +308,7 @@ ACTIVE_LLM_CONFIG = "google"  # Switch to Gemini Pro
 
 ---
 
-### 2. Changing Embedding Models
+### 3. Changing Embedding Models
 
 **Why change?** Trade-offs between speed, cost, and quality.
 
@@ -341,12 +352,12 @@ self.__sparse_embeddings = FastEmbedSparse(model_name=config.SPARSE_MODEL)
 | all-MiniLM-L6-v2 | 512 tokens | 384 | Fast | Good | General purpose, quick semantic similarity |
 | all-mpnet-base-v2 | 512 tokens | 768 | Medium | Excellent | High-accuracy semantic search |
 | bge-large-en-v1.5 | 512 tokens | 1024 | Slow | Best | Production-grade retrieval on GPU |
-| google/embeddinggemma-300m | 2048 tokens | 768 (MRL: 512 / 256 / 128) | Fast | Very Good | Lightweight, efficient multilingual retrieval |
-| Qwen/Qwen3-Embedding-8B | 32768 tokens | 4096 (configurable 32–4096) | Medium | Excellent / SOTA | Large-scale multilingual embeddings, long-context RAG |
+| google/embeddinggemma-300m | 2048 tokens | 768 | Fast | Very Good | Lightweight, efficient multilingual retrieval |
+| Qwen/Qwen3-Embedding-8B | 32768 tokens | 4096 | Slow | Excellent / SOTA | Large-scale multilingual embeddings, long-context RAG |
 
 ---
 
-### 3. Adjusting Chunking Strategy
+### 4. Adjusting Chunking Strategy
 
 **Why adjust?** Balance between retrieval precision and context richness.
 
@@ -402,6 +413,26 @@ Upload documents again through the Gradio interface to apply new chunking.
 | FAQs / Knowledge Base | 200-400 | 1500-4000 | Short, focused answers |
 
 ---
+
+### 5. Agent Configuration
+
+Tune agent behavior in `project/config.py`:
+```python
+# Hard limits to prevent infinite loops
+MAX_TOOL_CALLS = 8       # Maximum tool calls per agent run
+MAX_ITERATIONS = 10      # Maximum agent loop iterations
+
+# Context compression thresholds
+BASE_TOKEN_THRESHOLD = 2000     # Initial token threshold for compression
+TOKEN_GROWTH_FACTOR = 0.9       # Multiplier applied after each compression
+```
+
+| Parameter | Effect |
+|-----------|--------|
+| `MAX_TOOL_CALLS` | Increase for complex queries, decrease to speed up simple ones |
+| `MAX_ITERATIONS` | Controls how many reasoning loops the agent can run |
+| `BASE_TOKEN_THRESHOLD` | Delay compression by increasing this value |
+| `TOKEN_GROWTH_FACTOR` | Lower values compress more aggressively |
 
 ## Advanced Topics
 
@@ -472,18 +503,33 @@ with gr.Accordion("Advanced Settings", open=False):
 
 ### Docker Deployment
 
-Build and run with Docker:
+> ⚠️ **System Requirements**: At least 8GB of RAM allocated to Docker. The default Ollama model needs approximately 3.3GB to run.
 
+#### Build and Run
 ```bash
 # Build image
-docker build -t rag-system -f project/Dockerfile .
+docker build -t agentic-rag -f project/Dockerfile .
 
 # Run container
-docker run -p 7860:7860 \
-  -e OPENAI_API_KEY=your-key \
-  -v $(pwd)/data:/app/data \
-  rag-system
+docker run --name rag-assistant -p 7860:7860 agentic-rag
 ```
+
+**Optional: GPU acceleration** (NVIDIA only):
+```bash
+docker run --gpus all --name rag-assistant -p 7860:7860 agentic-rag
+```
+
+**Common commands:**
+```bash
+docker stop rag-assistant      # Stop
+docker start rag-assistant     # Restart
+docker logs -f rag-assistant   # View logs
+docker rm -f rag-assistant     # Remove
+```
+
+> ⚠️ **Performance Note**: On Windows/Mac, Docker runs via a Linux VM which may slow down I/O operations like document indexing. LLM inference speed is largely unaffected. On Linux, performance is comparable to running locally.
+
+Once running, open `http://localhost:7860`.
 
 ### Performance Optimization
 

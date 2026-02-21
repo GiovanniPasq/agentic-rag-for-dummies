@@ -5,3 +5,4 @@ markdown_docs/
 parent_store/
 docs/
 __pycache__/
+.vscode/

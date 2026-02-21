@@ -1,7 +1,7 @@
 from pathlib import Path
 import shutil
 import config
-from util import pdfs_to_markdowns
+from utils import pdfs_to_markdowns
 
 class DocumentManager:
 
