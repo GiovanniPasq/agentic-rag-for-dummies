@@ -20,6 +20,10 @@
 <p align="center">
   <img src="https://img.shields.io/github/stars/GiovanniPasq/agentic-rag-for-dummies?style=social" alt="GitHub Stars"/>
   <img src="https://img.shields.io/github/forks/GiovanniPasq/agentic-rag-for-dummies?style=social" alt="GitHub Forks"/>
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="License"/>
+  <a href="https://github.com/von-development/awesome-langgraph">
+    <img src="https://awesome.re/badge.svg" alt="Awesome LangGraph"/>
+  </a>
 </p>
 
 <p align="center">
@@ -27,11 +31,10 @@
   <img src="https://img.shields.io/badge/LangGraph-1.0%2B-orange?logo=langchain&logoColor=white" alt="LangGraph"/>
   <img src="https://img.shields.io/badge/Qdrant-vector%20db-DC244C" alt="Qdrant"/>
   <img src="https://img.shields.io/badge/LLM%20Providers-Ollama%20%7C%20OpenAI%20%7C%20Anthropic%20%7C%20Google-purple" alt="LLM Providers"/>
-  <img src="https://img.shields.io/badge/license-MIT-green" alt="License"/>
 </p>
 
 <p align="center">
-  <a href="https://colab.research.google.com/gist/GiovanniPasq/a74f077444ba21fc917dd8828bd92f23/agentic_rag_for_dummies.ipynb">
+  <a href="https://colab.research.google.com/gist/GiovanniPasq/d515af87582f4058dbbb54102f50b086/agentic_rag_for_dummies.ipynb">
     <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
   </a>
 </p>
