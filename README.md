@@ -55,6 +55,7 @@ This repository demonstrates how to build an **Agentic RAG (Retrieval-Augmented 
 
 | Feature | Description |
 |---|---|
+| 🐿️ **Clean Chunking** | Use [Chunky](https://github.com/GiovanniPasq/chunky) to visually inspect and edit your chunks before indexing |
 | 🔍 **Hierarchical Indexing** | Search small chunks for precision, retrieve large Parent chunks for context |
 | 💬 **Conversation Memory** | Maintains context across questions for natural dialogue |
 | 🔄 **Query Clarification** | Rewrites ambiguous queries or pauses to ask the user for details |
@@ -1114,7 +1115,7 @@ def clear_session():
     agent_graph.checkpointer.delete_thread(config["configurable"]["thread_id"])
     config = create_thread_id()
 
-def chat_with_agent(message, history):
+def chat(message, history):
     current_state = agent_graph.get_state(config)
     
     if current_state.next:
@@ -1130,7 +1131,7 @@ config = create_thread_id()
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot()
     chatbot.clear(clear_session)
-    gr.ChatInterface(fn=chat_with_agent, chatbot=chatbot)
+    gr.ChatInterface(fn=chat, chatbot=chatbot)
 
 demo.launch(theme=gr.themes.Citrus())
 ```
