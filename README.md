@@ -44,7 +44,8 @@
 </p>
 
 <p align="center">
-  <strong>If you like this project, a star ⭐️ would mean a lot :)</strong>
+  <strong>If you like this project, a star ⭐️ would mean a lot :)</strong><br>
+  <em>⚡️ Streaming responses and agent thinking visibility coming end of month.</em>
 </p>
 
 ## Overview
@@ -55,7 +56,6 @@ This repository demonstrates how to build an **Agentic RAG (Retrieval-Augmented 
 
 | Feature | Description |
 |---|---|
-| 🐿️ **Clean Chunking** | Use [Chunky](https://github.com/GiovanniPasq/chunky) to visually inspect and edit your chunks before indexing |
 | 🔍 **Hierarchical Indexing** | Search small chunks for precision, retrieve large Parent chunks for context |
 | 💬 **Conversation Memory** | Maintains context across questions for natural dialogue |
 | 🔄 **Query Clarification** | Rewrites ambiguous queries or pauses to ask the user for details |
@@ -84,6 +84,8 @@ Before queries can be processed, documents are split twice for optimal retrieval
 
 - **Parent Chunks**: Large sections based on Markdown headers (H1, H2, H3)
 - **Child Chunks**: Small, fixed-size pieces derived from parents
+
+> 💡 Optional: If you want to visually inspect or edit your chunks before indexing, you can use 🐿️ [**Chunky**](https://github.com/GiovanniPasq/chunky).
 
 This combines the **precision of small chunks** for search with the **contextual richness of large chunks** for answer generation.
 
