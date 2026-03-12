@@ -219,6 +219,7 @@ pip install langchain-openai langchain-anthropic langchain-google-genai
 export OPENAI_API_KEY="your-openai-key"
 export ANTHROPIC_API_KEY="your-anthropic-key"
 export GOOGLE_API_KEY="your-google-key"
+export MINIMAX_API_KEY="your-minimax-key"
 ```
 
 **Step 3:** Update `project/config.py` with multi-provider configuration
@@ -242,6 +243,11 @@ LLM_CONFIGS = {
     "google": {
         "model": "gemini-2.5-flash",
         "temperature": 0
+    },
+    "minimax": {
+        "model": "MiniMax-M2.5",
+        "base_url": "https://api.minimax.io/v1",
+        "temperature": 1.0
     }
 }
 
@@ -249,43 +255,7 @@ LLM_CONFIGS = {
 ACTIVE_LLM_CONFIG = "ollama"
 ```
 
-**Step 4:** Modify `project/core/rag_system.py` in the `initialize()` method
-
-Replace the existing LLM initialization with:
-
-```python
-def initialize(self):
-    self.vector_db.create_collection(self.collection_name)
-    collection = self.vector_db.get_collection(self.collection_name)
-    
-    # Load active configuration
-    active_config = config.LLM_CONFIGS[config.ACTIVE_LLM_CONFIG]
-    model = active_config["model"]
-    temperature = active_config["temperature"]
-    
-    if config.ACTIVE_LLM_CONFIG == "ollama":
-        from langchain_ollama import ChatOllama
-        llm = ChatOllama(model=model, temperature=temperature, base_url=active_config["url"])
-        
-    elif config.ACTIVE_LLM_CONFIG == "openai":
-        from langchain_openai import ChatOpenAI
-        llm = ChatOpenAI(model=model, temperature=temperature)
-        
-    elif config.ACTIVE_LLM_CONFIG == "anthropic":
-        from langchain_anthropic import ChatAnthropic
-        llm = ChatAnthropic(model=model, temperature=temperature)
-        
-    elif config.ACTIVE_LLM_CONFIG == "google":
-        from langchain_google_genai import ChatGoogleGenerativeAI
-        llm = ChatGoogleGenerativeAI(model=model, temperature=temperature)
-        
-    else:
-        raise ValueError(f"Unsupported LLM provider: {config.ACTIVE_LLM_CONFIG}")
-    
-    # Continue with tool and graph initialization
-    tools = ToolFactory(collection).create_tools()
-    self.agent_graph = create_agent_graph(llm, tools)
-```
+> **Note:** Multi-provider support is already implemented in the codebase. Simply update `ACTIVE_LLM_CONFIG` in `config.py` to switch providers.
 
 **Switching Providers:** Simply change `ACTIVE_LLM_CONFIG` in `config.py`:
 
@@ -293,6 +263,7 @@ def initialize(self):
 ACTIVE_LLM_CONFIG = "google"  # Switch to Gemini Pro
 # ACTIVE_LLM_CONFIG = "anthropic"  # Or Claude Sonnet
 # ACTIVE_LLM_CONFIG = "openai"  # Or GPT-4o
+# ACTIVE_LLM_CONFIG = "minimax"  # Or MiniMax M2.5
 ```
 
 ---
@@ -301,9 +272,10 @@ ACTIVE_LLM_CONFIG = "google"  # Switch to Gemini Pro
 
 | Provider | Environment Variable | Import Statement | Example Models |
 |----------|---------------------|------------------|----------------|
-| OpenAI | `OPENAI_API_KEY` | `from langchain_openai import ChatOpenAI` | `gpt-5.2`, `ggpt-5-mini` |
+| OpenAI | `OPENAI_API_KEY` | `from langchain_openai import ChatOpenAI` | `gpt-5.2`, `gpt-5-mini` |
 | Anthropic | `ANTHROPIC_API_KEY` | `from langchain_anthropic import ChatAnthropic` | `claude-opus-4-6`, `claude-sonnet-4-6` |
 | Google | `GOOGLE_API_KEY` | `from langchain_google_genai import ChatGoogleGenerativeAI` | `gemini-2.5-pro`, `gemini-2.5-flash` |
+| MiniMax | `MINIMAX_API_KEY` | `from langchain_openai import ChatOpenAI` | `MiniMax-M2.5`, `MiniMax-M2.5-highspeed` |
 | Ollama | None (local) | `from langchain_ollama import ChatOllama` | `qwen3:4b-instruct-2507-q4_K_M`, `ministral-3:8b-instruct-2512-q4_K_M`, `llama3.1:8b-instruct-q6_K` |
 
 ---

@@ -14,8 +14,39 @@ SPARSE_VECTOR_NAME = "sparse"
 # --- Model Configuration ---
 DENSE_MODEL = "sentence-transformers/all-mpnet-base-v2"
 SPARSE_MODEL = "Qdrant/bm25"
-LLM_MODEL = "qwen3:4b-instruct-2507-q4_K_M"
-LLM_TEMPERATURE = 0
+
+# --- Multi-Provider LLM Configuration ---
+LLM_CONFIGS = {
+    "ollama": {
+        "model": "qwen3:4b-instruct-2507-q4_K_M",
+        "url": "http://localhost:11434",
+        "temperature": 0
+    },
+    "openai": {
+        "model": "gpt-4o-mini",
+        "temperature": 0
+    },
+    "anthropic": {
+        "model": "claude-sonnet-4-5-20250929",
+        "temperature": 0
+    },
+    "google": {
+        "model": "gemini-2.5-flash",
+        "temperature": 0
+    },
+    "minimax": {
+        "model": "MiniMax-M2.5",
+        "base_url": "https://api.minimax.io/v1",
+        "temperature": 1.0
+    }
+}
+
+# Switch providers by changing this single line
+ACTIVE_LLM_CONFIG = "ollama"
+
+# Legacy single-provider config (kept for backward compatibility)
+LLM_MODEL = LLM_CONFIGS[ACTIVE_LLM_CONFIG]["model"]
+LLM_TEMPERATURE = LLM_CONFIGS[ACTIVE_LLM_CONFIG]["temperature"]
 
 # --- Agent Configuration ---
 MAX_TOOL_CALLS = 8

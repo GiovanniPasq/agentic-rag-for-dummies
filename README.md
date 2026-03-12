@@ -30,7 +30,7 @@
   <img src="https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white" alt="Python"/>
   <img src="https://img.shields.io/badge/LangGraph-1.0%2B-orange?logo=langchain&logoColor=white" alt="LangGraph"/>
   <img src="https://img.shields.io/badge/Qdrant-vector%20db-DC244C" alt="Qdrant"/>
-  <img src="https://img.shields.io/badge/LLM%20Providers-Ollama%20%7C%20OpenAI%20%7C%20Anthropic%20%7C%20Google-purple" alt="LLM Providers"/>
+  <img src="https://img.shields.io/badge/LLM%20Providers-Ollama%20%7C%20OpenAI%20%7C%20Anthropic%20%7C%20Google%20%7C%20MiniMax-purple" alt="LLM Providers"/>
 </p>
 
 <p align="center">
@@ -171,6 +171,25 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 os.environ["GOOGLE_API_KEY"] = "your-api-key-here"
 llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
 ```
+
+**MiniMax**
+```bash
+pip install -qU langchain-openai
+```
+```python
+from langchain_openai import ChatOpenAI
+import os
+
+os.environ["MINIMAX_API_KEY"] = "your-api-key-here"
+llm = ChatOpenAI(
+    model="MiniMax-M2.5",
+    base_url="https://api.minimax.io/v1",
+    api_key=os.environ["MINIMAX_API_KEY"],
+    temperature=1.0,
+)
+```
+> Available models: `MiniMax-M2.5` (default), `MiniMax-M2.5-highspeed` (faster). Both support 204,800 token context. See [API docs](https://platform.minimax.io/docs/api-reference/text-openai-api).
+
 </details>
 
 ---
