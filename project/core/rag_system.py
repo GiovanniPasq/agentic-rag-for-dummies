@@ -18,7 +18,7 @@ class RAGSystem:
         self.observability = Observability()
         self.agent_graph = None
         self.thread_id = str(uuid.uuid4())
-        self.recursion_limit = 50
+        self.recursion_limit = config.GRAPH_RECURSION_LIMIT
         
     def initialize(self):
         self.vector_db.create_collection(self.collection_name)

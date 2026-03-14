@@ -137,6 +137,7 @@ LLM_TEMPERATURE = 0  # 0 = deterministic, 1 = creative
 # Hard limits to prevent infinite loops
 MAX_TOOL_CALLS = 8       # Maximum tool calls per agent run
 MAX_ITERATIONS = 10      # Maximum agent loop iterations
+GRAPH_RECURSION_LIMIT = 50 # Maximum number of steps before hitting a stop condition
 
 # Context compression thresholds
 BASE_TOKEN_THRESHOLD = 2000     # Initial token threshold for compression
@@ -371,6 +372,8 @@ self.__sparse_embeddings = FastEmbedSparse(model_name=config.SPARSE_MODEL)
 
 **Why adjust?** Balance between retrieval precision and context richness.
 
+> **💡 Validation Tool:** To avoid trial-and-error, you can use 🐿️[**Chunky**](https://github.com/GiovanniPasq/chunky) to visually inspect how different strategies affect your documents.
+
 **Step 1:** Update chunk sizes in `project/config.py`
 
 ```python
@@ -437,6 +440,7 @@ Tune agent behavior in `project/config.py`:
 # Hard limits to prevent infinite loops
 MAX_TOOL_CALLS = 8       # Maximum tool calls per agent run
 MAX_ITERATIONS = 10      # Maximum agent loop iterations
+GRAPH_RECURSION_LIMIT = 50 # Maximum number of steps before hitting a stop condition
 
 # Context compression thresholds
 BASE_TOKEN_THRESHOLD = 2000     # Initial token threshold for compression
@@ -447,6 +451,7 @@ TOKEN_GROWTH_FACTOR = 0.9       # Multiplier applied after each compression
 |-----------|--------|
 | `MAX_TOOL_CALLS` | Increase for complex queries, decrease to speed up simple ones |
 | `MAX_ITERATIONS` | Controls how many reasoning loops the agent can run |
+| `GRAPH_RECURSION_LIMIT` | Increase for complex [graphs](https://docs.langchain.com/oss/python/langgraph/errors/GRAPH_RECURSION_LIMIT) |
 | `BASE_TOKEN_THRESHOLD` | Delay compression by increasing this value |
 | `TOKEN_GROWTH_FACTOR` | Lower values compress more aggressively |
 

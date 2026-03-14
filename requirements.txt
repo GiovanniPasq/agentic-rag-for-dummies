@@ -4,7 +4,6 @@ annotated-types==0.7.0
 anyio==4.12.1
 appnope==0.1.4
 asttokens==3.0.1
-audioop-lts==0.2.2; python_version>='3.13'
 brotli==1.2.0
 certifi==2026.1.4
 charset-normalizer==3.4.4
@@ -133,6 +132,5 @@ uvicorn==0.40.0
 wcwidth==0.2.14
 xxhash==3.6.0
 zstandard==0.25.0
-
-langfuse>=2.0.0
-python-dotenv>=1.0.0
+langfuse==4.0.0
+python-dotenv==1.2.2
