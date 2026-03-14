@@ -5,7 +5,7 @@ An **Agentic Retrieval-Augmented Generation (RAG)** system built with **LangGrap
 
 ## Table of Contents
 
-[Quick Start](#quick-start) | [Architecture Overview](#architecture-overview) | [Project Structure](#project-structure) | [Configuration Guide](#configuration-guide) | [Common Customizations](#common-customizations) | [Advanced Topics](#advanced-topics) | [Troubleshooting](#troubleshooting)
+[Quick Start](#quick-start) | [Architecture Overview](#architecture-overview) | [Project Structure](#project-structure) | [Configuration Guide](#configuration-guide) | [Common Customizations](#common-customizations) | [Observability](#observability) | [Advanced Topics](#advanced-topics) | [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -439,6 +439,47 @@ TOKEN_GROWTH_FACTOR = 0.9       # Multiplier applied after each compression
 | `MAX_ITERATIONS` | Controls how many reasoning loops the agent can run |
 | `BASE_TOKEN_THRESHOLD` | Delay compression by increasing this value |
 | `TOKEN_GROWTH_FACTOR` | Lower values compress more aggressively |
+
+---
+
+## Observability
+
+Optional tracing with [Langfuse](https://langfuse.com) captures every LLM call, tool invocation, and graph transition  useful for debugging agent behavior, tracking costs, and evaluating retrieval quality.
+
+### Enabling Langfuse
+
+1. Install the dependency: `pip install langfuse`
+2. Create an account on [Langfuse Cloud](https://cloud.langfuse.com/), create a new project, then generate API keys from the project settings.
+3. Set environment variables (or copy `.env.example` to `.env`):
+
+```bash
+export LANGFUSE_ENABLED=true
+export LANGFUSE_PUBLIC_KEY=pk-lf-...
+export LANGFUSE_SECRET_KEY=sk-lf-...
+export LANGFUSE_BASE_URL=https://cloud.langfuse.com   # or your self-hosted URL
+```
+
+4. Run the app normally. Traces appear in your [Langfuse dashboard](https://cloud.langfuse.com/).
+
+To disable tracing, set `LANGFUSE_ENABLED=false` or leave the variables unset. The application runs identically either way.
+
+### What gets traced
+
+| Component | Traced operations |
+|-----------|-------------------|
+| Graph nodes | `summarize_history`, `rewrite_query`, `orchestrator`, `compress_context`, `fallback_response`, `aggregate_answers` |
+| Tools | `search_child_chunks`, `retrieve_parent_chunks` (arguments + results) |
+| Structured output | `QueryAnalysis` parsing in the rewrite step |
+| Subgraph fan-out | Parallel agent invocations via `Send()` |
+
+### Hosting options
+
+- **Langfuse Cloud** — sign up at [cloud.langfuse.com](https://cloud.langfuse.com), free up to 50K observations/month.
+- **Self-hosted** — MIT-licensed, deploy with Docker Compose. A complete `docker-compose.yml` is provided in [`Observability_Guide.ipynb`](../Observability_Guide.ipynb).
+
+For a detailed comparison of observability platforms (LangSmith, Arize Phoenix, AgentOps, Braintrust, Helicone) and the full self-hosting setup, see [`Observability_Guide.ipynb`](../Observability_Guide.ipynb).
+
+---
 
 ## Advanced Topics
 

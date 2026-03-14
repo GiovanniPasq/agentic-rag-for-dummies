@@ -133,3 +133,6 @@ uvicorn==0.40.0
 wcwidth==0.2.14
 xxhash==3.6.0
 zstandard==0.25.0
+
+langfuse>=2.0.0
+python-dotenv>=1.0.0

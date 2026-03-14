@@ -6,3 +6,4 @@ parent_store/
 docs/
 __pycache__/
 .vscode/
+.env

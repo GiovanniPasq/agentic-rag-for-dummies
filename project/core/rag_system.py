@@ -6,6 +6,7 @@ from db.parent_store_manager import ParentStoreManager
 from document_chunker import DocumentChuncker
 from rag_agent.tools import ToolFactory
 from rag_agent.graph import create_agent_graph
+from core.observability import get_langfuse_handler
 
 class RAGSystem:
     
@@ -27,7 +28,14 @@ class RAGSystem:
         self.agent_graph = create_agent_graph(llm, tools)
         
     def get_config(self):
-        return {"configurable": {"thread_id": self.thread_id}, "recursion_limit": self.recursion_limit}
+        cfg = {
+            "configurable": {"thread_id": self.thread_id},
+            "recursion_limit": self.recursion_limit,
+        }
+        handler = get_langfuse_handler()
+        if handler:
+            cfg["callbacks"] = [handler]
+        return cfg
     
     def reset_thread(self):
         try:
