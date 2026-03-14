@@ -9,16 +9,18 @@ class ChatInterface:
 
         if not self.rag_system.agent_graph:
             return "⚠️ System not initialized!"
-            
+
         try:
             result = self.rag_system.agent_graph.invoke(
                 {"messages": [HumanMessage(content=message.strip())]},
                 self.rag_system.get_config()
             )
             return result["messages"][-1].content
-            
+
         except Exception as e:
             return f"❌ Error: {str(e)}"
+        finally:
+            self.rag_system.observability.flush()
     
     def clear_session(self):
         self.rag_system.reset_thread()
