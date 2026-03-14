@@ -73,6 +73,7 @@ PDF → Markdown Conversion → Parent/Child Chunking → Vector Indexing → Ag
 | `project/core/rag_system.py` | System bootstrap - creates managers and compiles LangGraph agent |
 | `project/core/document_manager.py` | Document ingestion pipeline (convert, chunk, index) |
 | `project/core/chat_interface.py` | Thin wrapper for agent graph interaction |
+| `project/core/observability.py` | Optional Langfuse tracing — callback handler lifecycle |
 
 ### Database Layer
 
@@ -156,6 +157,15 @@ HEADERS_TO_SPLIT_ON = [
     ("##", "H2"),
     ("###", "H3")
 ]
+```
+
+### Langfuse Observability (Optional)
+
+```python
+LANGFUSE_ENABLED = False               # Set to True via LANGFUSE_ENABLED env var
+LANGFUSE_PUBLIC_KEY = ""               # From your Langfuse project settings
+LANGFUSE_SECRET_KEY = ""               # From your Langfuse project settings
+LANGFUSE_BASE_URL = "http://localhost:3000"  # Langfuse Cloud or self-hosted URL
 ```
 
 ---
@@ -448,9 +458,8 @@ Optional tracing with [Langfuse](https://langfuse.com) captures every LLM call, 
 
 ### Enabling Langfuse
 
-1. Install the dependency: `pip install langfuse`
-2. Create an account on [Langfuse Cloud](https://cloud.langfuse.com/), create a new project, then generate API keys from the project settings.
-3. Set environment variables (or copy `.env.example` to `.env`):
+1. Sign up on [Langfuse Cloud](https://cloud.langfuse.com/), create an organization, then create a project and generate API keys from the project settings.
+2. Set environment variables (or copy `.env.example` to `.env`):
 
 ```bash
 export LANGFUSE_ENABLED=true
@@ -475,7 +484,7 @@ To disable tracing, set `LANGFUSE_ENABLED=false` or leave the variables unset. T
 ### Hosting options
 
 - **Langfuse Cloud** — sign up at [cloud.langfuse.com](https://cloud.langfuse.com), free up to 50K observations/month.
-- **Self-hosted** — MIT-licensed, deploy with Docker Compose. A complete `docker-compose.yml` is provided in [`Observability_Guide.ipynb`](../Observability_Guide.ipynb).
+- **Self-hosted** — MIT-licensed, deploy with Docker Compose. See the [official self-hosting docs](https://langfuse.com/self-hosting).
 
 For a detailed comparison of observability platforms (LangSmith, Arize Phoenix, AgentOps, Braintrust, Helicone) and the full self-hosting setup, see [`Observability_Guide.ipynb`](../Observability_Guide.ipynb).
 

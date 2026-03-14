@@ -6,7 +6,7 @@ from db.parent_store_manager import ParentStoreManager
 from document_chunker import DocumentChuncker
 from rag_agent.tools import ToolFactory
 from rag_agent.graph import create_agent_graph
-from core.observability import get_langfuse_handler
+from core.observability import Observability
 
 class RAGSystem:
     
@@ -15,6 +15,7 @@ class RAGSystem:
         self.vector_db = VectorDbManager()
         self.parent_store = ParentStoreManager()
         self.chunker = DocumentChuncker()
+        self.observability = Observability()
         self.agent_graph = None
         self.thread_id = str(uuid.uuid4())
         self.recursion_limit = 50
@@ -32,7 +33,7 @@ class RAGSystem:
             "configurable": {"thread_id": self.thread_id},
             "recursion_limit": self.recursion_limit,
         }
-        handler = get_langfuse_handler()
+        handler = self.observability.get_handler()
         if handler:
             cfg["callbacks"] = [handler]
         return cfg

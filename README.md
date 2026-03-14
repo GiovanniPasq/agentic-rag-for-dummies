@@ -63,6 +63,7 @@ This repository demonstrates how to build an **Agentic RAG (Retrieval-Augmented 
 | 🔀 **Multi-Agent Map-Reduce** | Decomposes complex queries into parallel sub-queries |
 | ✅ **Self-Correction** | Re-queries automatically if initial results are insufficient |
 | 🧠 **Context Compression** | Keeps working memory lean across long retrieval loops |
+| 📊 **Observability** | Track LLM calls, tool usage, and graph execution with Langfuse |
 
 ### 🎯 Two Ways to Use This Repo
 

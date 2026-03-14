@@ -1,5 +1,4 @@
 from langchain_core.messages import HumanMessage
-from core.observability import flush_langfuse
 
 class ChatInterface:
     
@@ -21,7 +20,7 @@ class ChatInterface:
         except Exception as e:
             return f"❌ Error: {str(e)}"
         finally:
-            flush_langfuse()
+            self.rag_system.observability.flush()
     
     def clear_session(self):
         self.rag_system.reset_thread()
