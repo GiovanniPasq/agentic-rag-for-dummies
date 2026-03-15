@@ -115,11 +115,16 @@ PARENT_STORE_PATH = "parent_store"    # File-backed storage for parent chunks
 QDRANT_DB_PATH = "qdrant_db"          # Local Qdrant vector database path
 ```
 
+`QDRANT_DB_PATH` is used when running Qdrant in embedded local mode. If you want to use Qdrant Cloud or a remote/self-hosted instance, set `QDRANT_URL` instead.
+
 ### Qdrant Configuration
 
 ```python
 CHILD_COLLECTION = "document_child_chunks"  # Collection name for child chunks
 SPARSE_VECTOR_NAME = "sparse"               # Named sparse vector field (BM25)
+QDRANT_URL = ""                             # Optional remote Qdrant endpoint
+QDRANT_API_KEY = ""                         # Optional API key for Qdrant Cloud
+QDRANT_PREFER_GRPC = False                  # Optional: use gRPC when supported
 ```
 
 ### Model Configuration

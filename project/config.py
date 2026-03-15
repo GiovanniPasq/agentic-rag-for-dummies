@@ -10,6 +10,9 @@ QDRANT_DB_PATH = os.path.join(_BASE_DIR, "qdrant_db")
 # --- Qdrant Configuration ---
 CHILD_COLLECTION = "document_child_chunks"
 SPARSE_VECTOR_NAME = "sparse"
+QDRANT_URL = os.environ.get("QDRANT_URL", "").strip()
+QDRANT_API_KEY = os.environ.get("QDRANT_API_KEY", "").strip()
+QDRANT_PREFER_GRPC = os.environ.get("QDRANT_PREFER_GRPC", "false").lower() == "true"
 
 # --- Model Configuration ---
 DENSE_MODEL = "sentence-transformers/all-mpnet-base-v2"

@@ -8,17 +8,33 @@ class VectorDbManager:
     __client: QdrantClient
     __dense_embeddings: HuggingFaceEmbeddings
     __sparse_embeddings: FastEmbedSparse
+
     def __init__(self):
-        self.__client = QdrantClient(path=config.QDRANT_DB_PATH)
+        client_kwargs = {"prefer_grpc": config.QDRANT_PREFER_GRPC}
+        if config.QDRANT_URL:
+            client_kwargs.update(
+                {
+                    "url": config.QDRANT_URL,
+                    "api_key": config.QDRANT_API_KEY or None,
+                }
+            )
+        else:
+            client_kwargs["path"] = config.QDRANT_DB_PATH
+
+        self.__client = QdrantClient(**client_kwargs)
         self.__dense_embeddings = HuggingFaceEmbeddings(model_name=config.DENSE_MODEL)
         self.__sparse_embeddings = FastEmbedSparse(model_name=config.SPARSE_MODEL)
+        self.__embedding_size = len(self.__dense_embeddings.embed_query("test"))
 
     def create_collection(self, collection_name):
         if not self.__client.collection_exists(collection_name):
             print(f"Creating collection: {collection_name}...")
             self.__client.create_collection(
                 collection_name=collection_name,
-                vectors_config=qmodels.VectorParams(size=len(self.__dense_embeddings.embed_query("test")), distance=qmodels.Distance.COSINE),
+                vectors_config=qmodels.VectorParams(
+                    size=self.__embedding_size,
+                    distance=qmodels.Distance.COSINE,
+                ),
                 sparse_vectors_config={config.SPARSE_VECTOR_NAME: qmodels.SparseVectorParams()},
             )
             print(f"✓ Collection created: {collection_name}")
@@ -44,4 +60,4 @@ class VectorDbManager:
                     sparse_vector_name=config.SPARSE_VECTOR_NAME
                 )
         except Exception as e:
-            print(f"Unable to get collection {collection_name}: {e}")
+            raise RuntimeError(f"Unable to get collection {collection_name}: {e}") from e
