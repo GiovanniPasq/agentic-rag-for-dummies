@@ -219,7 +219,14 @@ llm = ChatOllama(model="qwen3:4b-instruct-2507-q4_K_M", temperature=0)
 dense_embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 sparse_embeddings = FastEmbedSparse(model_name="Qdrant/bm25")
 
-client = QdrantClient(path="qdrant_db")
+qdrant_url = os.environ.get("QDRANT_URL", "").strip()
+qdrant_api_key = os.environ.get("QDRANT_API_KEY", "").strip() or None
+
+client = (
+    QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
+    if qdrant_url
+    else QdrantClient(path="qdrant_db")
+)
 ```
 
 ---
