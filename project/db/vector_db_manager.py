@@ -15,7 +15,7 @@ class VectorDbManager:
             client_kwargs.update(
                 {
                     "url": config.QDRANT_URL,
-                    "api_key": config.QDRANT_API_KEY or None,
+                    "api_key": config.QDRANT_API_KEY,
                 }
             )
         else:
