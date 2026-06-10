@@ -17,6 +17,16 @@ class DocumentChuncker:
         self.__min_parent_size = config.MIN_PARENT_SIZE
         self.__max_parent_size = config.MAX_PARENT_SIZE
 
+    @staticmethod
+    def __merge_metadata(target, source, prepend=False):
+        for key, value in source.items():
+            if key not in target:
+                target[key] = value
+            elif prepend:
+                target[key] = f"{value} -> {target[key]}"
+            else:
+                target[key] = f"{target[key]} -> {value}"
+
     def create_chunks(self, path_dir=config.MARKDOWN_DIR):
         all_parent_chunks, all_child_chunks = [], []
 
@@ -53,11 +63,7 @@ class DocumentChuncker:
                 current = chunk
             else:
                 current.page_content += "\n\n" + chunk.page_content
-                for k, v in chunk.metadata.items():
-                    if k in current.metadata:
-                        current.metadata[k] = f"{current.metadata[k]} -> {v}"
-                    else:
-                        current.metadata[k] = v
+                self.__merge_metadata(current.metadata, chunk.metadata)
 
             if len(current.page_content) >= self.__min_parent_size:
                 merged.append(current)
@@ -66,11 +72,7 @@ class DocumentChuncker:
         if current:
             if merged:
                 merged[-1].page_content += "\n\n" + current.page_content
-                for k, v in current.metadata.items():
-                    if k in merged[-1].metadata:
-                        merged[-1].metadata[k] = f"{merged[-1].metadata[k]} -> {v}"
-                    else:
-                        merged[-1].metadata[k] = v
+                self.__merge_metadata(merged[-1].metadata, current.metadata)
             else:
                 merged.append(current)
         
@@ -99,18 +101,10 @@ class DocumentChuncker:
             if len(chunk.page_content) < self.__min_parent_size:
                 if cleaned:
                     cleaned[-1].page_content += "\n\n" + chunk.page_content
-                    for k, v in chunk.metadata.items():
-                        if k in cleaned[-1].metadata:
-                            cleaned[-1].metadata[k] = f"{cleaned[-1].metadata[k]} -> {v}"
-                        else:
-                            cleaned[-1].metadata[k] = v
+                    self.__merge_metadata(cleaned[-1].metadata, chunk.metadata)
                 elif i < len(chunks) - 1:
                     chunks[i + 1].page_content = chunk.page_content + "\n\n" + chunks[i + 1].page_content
-                    for k, v in chunk.metadata.items():
-                        if k in chunks[i + 1].metadata:
-                            chunks[i + 1].metadata[k] = f"{v} -> {chunks[i + 1].metadata[k]}"
-                        else:
-                            chunks[i + 1].metadata[k] = v
+                    self.__merge_metadata(chunks[i + 1].metadata, chunk.metadata, prepend=True)
                 else:
                     cleaned.append(chunk)
             else:

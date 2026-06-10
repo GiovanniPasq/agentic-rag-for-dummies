@@ -1,0 +1,302 @@
+[
+  {
+    "source": "javascript_tutorial.pdf",
+    "markdown_file": "javascript_tutorial.md",
+    "question": "How can client-side JavaScript prevent unnecessary server requests during form submission?",
+    "reference": "Client-side JavaScript can validate user input before it is sent to the server. For example, it can check whether an email address appears valid, which avoids sending invalid data and reduces unnecessary server interaction.",
+    "context_phrases": [
+      "check if the user has entered a valid e-mail",
+      "Less server interaction"
+    ]
+  },
+  {
+    "source": "javascript_tutorial.pdf",
+    "markdown_file": "javascript_tutorial.md",
+    "question": "Which JavaScript features can improve the user experience on a web page?",
+    "reference": "JavaScript can provide immediate feedback to visitors and increase interactivity. It can also support richer interfaces, such as drag-and-drop components and sliders.",
+    "context_phrases": [
+      "Immediate feedback to the visitors",
+      "Increased interactivity"
+    ]
+  },
+  {
+    "source": "javascript_tutorial.pdf",
+    "markdown_file": "javascript_tutorial.md",
+    "question": "A browser script needs to read local files and use multiple CPU threads. Which JavaScript limitations matter here?",
+    "reference": "Client-side JavaScript does not allow reading or writing files for security reasons and does not support multithreading or multiprocessor capabilities.",
+    "context_phrases": [
+      "does not allow the reading or writing of files",
+      "doesn't have any multithreading"
+    ]
+  },
+  {
+    "source": "javascript_tutorial.pdf",
+    "markdown_file": "javascript_tutorial.md",
+    "question": "Why can a beginner start writing JavaScript without buying a compiler?",
+    "reference": "JavaScript is interpreted, so a beginner can write it with a simple text editor such as Notepad and does not need to buy a compiler.",
+    "context_phrases": [
+      "simple text editor such as Notepad",
+      "don't even need to buy a compiler"
+    ]
+  },
+  {
+    "source": "javascript_tutorial.pdf",
+    "markdown_file": "javascript_tutorial.md",
+    "question": "Where should JavaScript code be placed in an HTML page, and which script attribute should be used?",
+    "reference": "JavaScript code is placed between script tags. Scripts can be placed anywhere in an HTML page, but they are normally kept in the head section. The recommended script attribute is type=\"text/javascript\" because the language attribute is phased out.",
+    "context_phrases": [
+      "placed within the **<script>... </script>** HTML tags",
+      "value should be set to \"text/javascript\""
+    ]
+  },
+  {
+    "source": "javascript_tutorial.pdf",
+    "markdown_file": "javascript_tutorial.md",
+    "question": "Why are `Name` and `name` treated as different JavaScript variables?",
+    "reference": "JavaScript variable names are case-sensitive, so `Name` and `name` are interpreted as two different variables.",
+    "context_phrases": [
+      "JavaScript variable names are case-sensitive",
+      "**Name** and **name** are two different variables"
+    ]
+  },
+  {
+    "source": "javascript_tutorial.pdf",
+    "markdown_file": "javascript_tutorial.md",
+    "question": "Which identifiers should a JavaScript developer avoid when naming variables or functions?",
+    "reference": "A developer should avoid JavaScript reserved words. Reserved words cannot be used as variables, functions, methods, loop labels, or object names.",
+    "context_phrases": [
+      "reserved words in JavaScript",
+      "cannot be used as JavaScript variables"
+    ]
+  },
+  {
+    "source": "javascript_tutorial.pdf",
+    "markdown_file": "javascript_tutorial.md",
+    "question": "What kinds of user actions can JavaScript event handlers react to in a web page?",
+    "reference": "JavaScript can trap user-initiated events such as button clicks, link navigation, and other actions users perform explicitly or implicitly.",
+    "context_phrases": [
+      "trap user-initiated events",
+      "button clicks"
+    ]
+  },
+  {
+    "source": "javascript_tutorial.pdf",
+    "markdown_file": "javascript_tutorial.md",
+    "question": "How is JavaScript related to Java and HTML?",
+    "reference": "JavaScript is complementary to and integrated with Java, and it is also complementary to and integrated with HTML. It is lightweight, interpreted, open, cross-platform, and designed for network-centric applications.",
+    "context_phrases": [
+      "Complementary to and integrated with Java",
+      "Complementary to and integrated with HTML"
+    ]
+  },
+  {
+    "source": "javascript_tutorial.pdf",
+    "markdown_file": "javascript_tutorial.md",
+    "question": "How are ECMA-262, JavaScript, and JScript related?",
+    "reference": "ECMA-262 defines the standard version of the core JavaScript language, and both Netscape's JavaScript and Microsoft's JScript conform to the ECMAScript standard.",
+    "context_phrases": [
+      "The ECMA 262 Specification",
+      "Netscape's JavaScript and Microsoft's JScript conform"
+    ]
+  },
+  {
+    "source": "blockchain.pdf",
+    "markdown_file": "blockchain.md",
+    "question": "What makes blockchain records difficult to alter after transactions are added?",
+    "reference": "Blockchain data is stored in blocks connected to previous blocks, and cryptographic techniques help keep the data secure and tamper-proof. Once data or a transaction is added to the blockchain, it cannot be altered or deleted.",
+    "context_phrases": [
+      "The data is stored in blocks",
+      "Once data (or a transaction) is added"
+    ]
+  },
+  {
+    "source": "blockchain.pdf",
+    "markdown_file": "blockchain.md",
+    "question": "Which centralization risks can blockchains help reduce?",
+    "reference": "Centralized systems depend on a single entity, which creates risks such as corruption, hacking, business failures, and gatekeeping. Blockchains reduce reliance on those central intermediaries.",
+    "context_phrases": [
+      "single entity, such as a bank or land registry",
+      "eliminate the need for gatekeepers"
+    ]
+  },
+  {
+    "source": "blockchain.pdf",
+    "markdown_file": "blockchain.md",
+    "question": "What is a blockchain ledger, and what kinds of assets can it track?",
+    "reference": "A blockchain is a tamper-proof shared digital ledger. It can record transactions and track assets that are tangible, such as cash or land, or intangible, such as copyrights or patents.",
+    "context_phrases": [
+      "tamper-proof, shared digital ledger",
+      "An asset can be tangible"
+    ]
+  },
+  {
+    "source": "blockchain.pdf",
+    "markdown_file": "blockchain.md",
+    "question": "Which pre-Bitcoin ideas helped shape blockchain history?",
+    "reference": "Haber and Stornetta's early-1990s cryptographic timestamping work and Nick Szabo's 1998 Bit Gold proposal helped shape blockchain history before Bitcoin.",
+    "context_phrases": [
+      "Stuart Haber and W. Scott Stornetta",
+      "Nick Szabo conceptualized"
+    ]
+  },
+  {
+    "source": "blockchain.pdf",
+    "markdown_file": "blockchain.md",
+    "question": "What double-spending problem did Bitcoin solve?",
+    "reference": "Bitcoin was the first technology to prevent double spending without relying on a central authority, using blockchain to make a decentralized peer-to-peer currency possible.",
+    "context_phrases": [
+      "first technology to prevent the issue of double spending",
+      "without relying on any central authority"
+    ]
+  },
+  {
+    "source": "blockchain.pdf",
+    "markdown_file": "blockchain.md",
+    "question": "Give two advantages of blockchain networks.",
+    "reference": "Blockchain networks can support peer-to-peer transactions, distributed reliability, censorship resistance, public verification, open access, and immutability.",
+    "context_phrases": [
+      "Peer-to-Peer Transactions",
+      "Censorship Resistance"
+    ]
+  },
+  {
+    "source": "blockchain.pdf",
+    "markdown_file": "blockchain.md",
+    "question": "What roles do digital signatures and hash functions play in blockchain cryptography?",
+    "reference": "Digital signatures let users prove ownership and sign transactions with private and public keys. Hash functions create fixed-size fingerprints of data, helping link blocks and protect integrity.",
+    "context_phrases": [
+      "Digital Signatures",
+      "Hash Functions"
+    ]
+  },
+  {
+    "source": "blockchain.pdf",
+    "markdown_file": "blockchain.md",
+    "question": "How do proof of work and proof of stake differ?",
+    "reference": "Proof of work is very secure but energy intensive, while proof of stake is more energy efficient because validators are chosen based on the amount of cryptocurrency they hold and are willing to stake.",
+    "context_phrases": [
+      "Very secure but requires a lot of energy",
+      "More energy efficient than PoW"
+    ]
+  },
+  {
+    "source": "blockchain.pdf",
+    "markdown_file": "blockchain.md",
+    "question": "Who can participate in permissionless blockchains compared with permissioned blockchains?",
+    "reference": "Permissionless blockchains allow anyone to participate in consensus and validation, while permissioned blockchains restrict participation to selected entities.",
+    "context_phrases": [
+      "Permissionless blockchains",
+      "permissioned blockchains"
+    ]
+  },
+  {
+    "source": "blockchain.pdf",
+    "markdown_file": "blockchain.md",
+    "question": "Why is interoperability important for blockchain networks?",
+    "reference": "Interoperability lets blockchain networks communicate and exchange data, messages, and tokens. Without it, assets and applications remain confined to isolated networks, limiting efficiency and adoption.",
+    "context_phrases": [
+      "Blockchain interoperability is defined",
+      "lack of interoperability confines"
+    ]
+  },
+  {
+    "source": "fortinet.pdf",
+    "markdown_file": "fortinet.md",
+    "question": "What category of security product is FortiGate classified as?",
+    "reference": "The Fortinet TOE is a Boundary Protection Device.",
+    "context_phrases": [
+      "TOE Type",
+      "Boundary Protection Device"
+    ]
+  },
+  {
+    "source": "fortinet.pdf",
+    "markdown_file": "fortinet.md",
+    "question": "Which FortiOS firmware build is used, and how do VM models differ from physical models?",
+    "reference": "The TOE runs FortiOS 5.2.7 build b718. Physical models include hardware and firmware, while VM models consist only of FortiOS.",
+    "context_phrases": [
+      "FortiOS 5.2.7 build number b718",
+      "Virtual Machine (VM) models consist only of the FortiOS"
+    ]
+  },
+  {
+    "source": "fortinet.pdf",
+    "markdown_file": "fortinet.md",
+    "question": "Which FortiGate security functions are included, and which traffic-control features are excluded?",
+    "reference": "FortiGate includes firewall, web filtering, VPN, antivirus, and intrusion detection/prevention security functionality. Antispam, content filtering, and traffic shaping are excluded.",
+    "context_phrases": [
+      "firewall, web filtering, VPN, antivirus and intrusion detection/prevention",
+      "antispam, content filtering and traffic shaping features are not included"
+    ]
+  },
+  {
+    "source": "fortinet.pdf",
+    "markdown_file": "fortinet.md",
+    "question": "How can administrators access the FortiGate TOE locally and remotely?",
+    "reference": "Administrators can use the dedicated console port for local administration and HTTPS on a configured network port for remote web administration.",
+    "context_phrases": [
+      "dedicated console port",
+      "Remote administration may be performed"
+    ]
+  },
+  {
+    "source": "fortinet.pdf",
+    "markdown_file": "fortinet.md",
+    "question": "Why is the Fortinet USB entropy token needed in FIPS mode?",
+    "reference": "The USB port can use a Fortinet token hardware entropy source. The entropy token is required for FIPS mode operation and supports random-number generation.",
+    "context_phrases": [
+      "Universal Serial Bus (USB) port",
+      "Fortinet token hardware entropy source"
+    ]
+  },
+  {
+    "source": "fortinet.pdf",
+    "markdown_file": "fortinet.md",
+    "question": "What does the security audit function provide to authorized administrators?",
+    "reference": "The TOE generates audit records for security-relevant events and restricts review of those records to authorized users.",
+    "context_phrases": [
+      "generates audit records",
+      "restricted to only those users authorized"
+    ]
+  },
+  {
+    "source": "fortinet.pdf",
+    "markdown_file": "fortinet.md",
+    "question": "How does the Fortinet TOE support random number generation in FIPS-CC mode?",
+    "reference": "It uses a NIST SP 800-90A DRBG seeded by the Fortinet entropy token, which provides a minimum of 256 bits of entropy.",
+    "context_phrases": [
+      "DRBG",
+      "minimum of 256 bits of entropy"
+    ]
+  },
+  {
+    "source": "fortinet.pdf",
+    "markdown_file": "fortinet.md",
+    "question": "Which information-flow policies are enforced before firewall rule matching?",
+    "reference": "The TOE enforces unauthenticated, authenticated, VPN, and web-filtering information-flow policies. Before firewall policy matching, the first processing step applies intrusion prevention anomaly checks such as SYN floods, ping of death, source routing, and port scans.",
+    "context_phrases": [
+      "four information flow security functional policies",
+      "The very first processing step"
+    ]
+  },
+  {
+    "source": "fortinet.pdf",
+    "markdown_file": "fortinet.md",
+    "question": "Which FortiGate access paths require identification and authentication?",
+    "reference": "Identification and authentication are enforced for administrator access through serial or network interfaces, authenticated network-user services, and VPN peer access. Some remote administrators also require a FortiToken one-time password.",
+    "context_phrases": [
+      "Identification and authentication is always enforced",
+      "FortiToken one-time password"
+    ]
+  },
+  {
+    "source": "fortinet.pdf",
+    "markdown_file": "fortinet.md",
+    "question": "Which trusted channels protect remote administration and HA heartbeat traffic?",
+    "reference": "Remote web administration uses HTTPS with TLS. HA heartbeat encryption and authentication can protect cluster traffic, but they are disabled by default and must be enabled for the protected configuration.",
+    "context_phrases": [
+      "HTTPS protocol",
+      "HA heartbeat encryption and authentication are disabled by default"
+    ]
+  }
+]

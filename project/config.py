@@ -12,10 +12,14 @@ CHILD_COLLECTION = "document_child_chunks"
 SPARSE_VECTOR_NAME = "sparse"
 
 # --- Model Configuration ---
-DENSE_MODEL = "sentence-transformers/all-mpnet-base-v2"
+DENSE_MODEL = "Qwen/Qwen3-Embedding-0.6B"
 SPARSE_MODEL = "Qdrant/bm25"
 LLM_MODEL = "qwen3:4b-instruct-2507-q4_K_M"
 LLM_TEMPERATURE = 0
+
+# --- Retrieval Configuration ---
+RETRIEVAL_SCORE_THRESHOLD = 0.4
+DEFAULT_RETRIEVAL_K = 7
 
 # --- Agent Configuration ---
 MAX_TOOL_CALLS = 8

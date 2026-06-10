@@ -1,6 +1,6 @@
 # Agentic RAG System Documentation
 
-An **Agentic Retrieval-Augmented Generation (RAG)** system built with **LangGraph**, featuring **parent–child chunking**, **hybrid dense + sparse retrieval**, and **multi-LLM provider support**.
+An **Agentic Retrieval-Augmented Generation (RAG)** system built with **LangGraph**, featuring **parent–child chunking**, **hybrid dense + sparse retrieval**, and a local Ollama-first setup that can be adapted to other LLM providers.
 
 
 ## Table of Contents
@@ -43,7 +43,7 @@ This system implements an advanced RAG pipeline with the following key features:
 - **Parent-Child Chunking**: Documents are split into small child chunks (for precise retrieval) linked to larger parent chunks (for rich context)
 - **Hybrid Search**: Combines dense embeddings and sparse (BM25) retrieval for optimal results
 - **LangGraph Agent**: Orchestrates query rewriting, retrieval, and response generation
-- **Multi-Provider Support**: Seamlessly switch between Ollama, OpenAI GPT, Google Gemini, and Anthropic Claude
+- **Provider Customization Path**: The runnable app uses Ollama by default, with documented examples for adapting it to OpenAI, Google Gemini, or Anthropic Claude
 - **Vector Storage**: Uses Qdrant for efficient similarity search
 
 ### Data Flow
@@ -126,10 +126,17 @@ SPARSE_VECTOR_NAME = "sparse"               # Named sparse vector field (BM25)
 
 ```python
 # Default: single model configuration
-DENSE_MODEL = "sentence-transformers/all-mpnet-base-v2"
+DENSE_MODEL = "Qwen/Qwen3-Embedding-0.6B"
 SPARSE_MODEL = "Qdrant/bm25"
 LLM_MODEL = "qwen3:4b-instruct-2507-q4_K_M"
 LLM_TEMPERATURE = 0  # 0 = deterministic, 1 = creative
+```
+
+### Retrieval Configuration
+
+```python
+RETRIEVAL_SCORE_THRESHOLD = 0.4  # Lower = more recall, higher = more precision
+DEFAULT_RETRIEVAL_K = 7          # Default number of chunks used by evaluation helpers
 ```
 
 ### Agent Configuration
@@ -163,7 +170,9 @@ HEADERS_TO_SPLIT_ON = [
 ### Langfuse Observability (Optional)
 
 ```python
-LANGFUSE_ENABLED = False               # Set to True via LANGFUSE_ENABLED env var
+import os
+
+LANGFUSE_ENABLED = os.environ.get("LANGFUSE_ENABLED", "false").lower() == "true"
 LANGFUSE_PUBLIC_KEY = ""               # From your Langfuse project settings
 LANGFUSE_SECRET_KEY = ""               # From your Langfuse project settings
 LANGFUSE_BASE_URL = "http://localhost:3000"  # Langfuse Cloud or self-hosted URL
@@ -177,7 +186,7 @@ LANGFUSE_BASE_URL = "http://localhost:3000"  # Langfuse Cloud or self-hosted URL
 
 > **Performance Note:** LLMs with 7B+ parameters typically offer superior reasoning, context comprehension, and response quality compared to smaller models. This applies to both proprietary and open-source models, as long as they **support native tool/function calling,** which is required for agentic RAG workflows.
 
-If you want to permanently switch from one provider to another (e.g., Ollama → Google Gemini), follow this steps:
+If you want to permanently switch from one provider to another (e.g., Ollama → Google Gemini), follow these steps:
 
 **Step 1:** Install the provider's SDK
 
@@ -214,7 +223,9 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 llm = ChatGoogleGenerativeAI(model=config.LLM_MODEL, temperature=config.LLM_TEMPERATURE)
 ```
 
-### 2. Multi-Provider Configuration
+### 2. Optional Multi-Provider Configuration
+
+The repository ships with an Ollama-first implementation. Use this section if you want to extend `project/core/rag_system.py` into a provider factory.
 
 This approach allows you to maintain multiple provider configurations and switch between them easily.
 
@@ -312,7 +323,7 @@ ACTIVE_LLM_CONFIG = "google"  # Switch to Gemini Pro
 
 | Provider | Environment Variable | Import Statement | Example Models |
 |----------|---------------------|------------------|----------------|
-| OpenAI | `OPENAI_API_KEY` | `from langchain_openai import ChatOpenAI` | `gpt-5.2`, `ggpt-5-mini` |
+| OpenAI | `OPENAI_API_KEY` | `from langchain_openai import ChatOpenAI` | `gpt-5.2`, `gpt-5-mini` |
 | Anthropic | `ANTHROPIC_API_KEY` | `from langchain_anthropic import ChatAnthropic` | `claude-opus-4-6`, `claude-sonnet-4-6` |
 | Google | `GOOGLE_API_KEY` | `from langchain_google_genai import ChatGoogleGenerativeAI` | `gemini-2.5-pro`, `gemini-2.5-flash` |
 | Ollama | None (local) | `from langchain_ollama import ChatOllama` | `qwen3:4b-instruct-2507-q4_K_M`, `ministral-3:8b-instruct-2512-q4_K_M`, `llama3.1:8b-instruct-q6_K` |
@@ -329,21 +340,21 @@ ACTIVE_LLM_CONFIG = "google"  # Switch to Gemini Pro
 # Example: Faster, smaller model
 DENSE_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
-# Example: Higher quality, slower model
+# Example: Alternative Sentence Transformers model
 # DENSE_MODEL = "sentence-transformers/all-mpnet-base-v2"
 
 # Example: Gemma embeddings (Google's open model)
 # DENSE_MODEL = "google/embeddinggemma-300m"
 
-# Example: Qwen embeddings (Alibaba's multilingual model)
-# DENSE_MODEL = "Qwen/Qwen3-Embedding-8B"
+# Default: Qwen embeddings (Alibaba's multilingual model)
+# DENSE_MODEL = "Qwen/Qwen3-Embedding-0.6B"
 
 SPARSE_MODEL = "Qdrant/bm25"  # Usually no need to change
 ```
 
 **Step 2:** Re-index your documents
 
-⚠️ **Important:** Changing embeddings requires re-indexing all documents through the Gradio UI.
+⚠️ **Important:** Changing embeddings requires clearing and re-indexing the Qdrant collection. The app checks vector dimensions at startup and will ask you to re-index if the existing collection was built with a different embedding model.
 
 **Implementation Details** (in `project/db/vector_db_manager.py`):
 
@@ -364,7 +375,8 @@ self.__sparse_embeddings = FastEmbedSparse(model_name=config.SPARSE_MODEL)
 | all-mpnet-base-v2 | 512 tokens | 768 | Medium | Excellent | High-accuracy semantic search |
 | bge-large-en-v1.5 | 512 tokens | 1024 | Slow | Best | Production-grade retrieval on GPU |
 | google/embeddinggemma-300m | 2048 tokens | 768 | Fast | Very Good | Lightweight, efficient multilingual retrieval |
-| Qwen/Qwen3-Embedding-8B | 32768 tokens | 4096 | Slow | Excellent / SOTA | Large-scale multilingual embeddings, long-context RAG |
+| Qwen/Qwen3-Embedding-0.6B | 32768 tokens | 1024 | Medium | Excellent | Default multilingual/code retrieval model |
+| Qwen/Qwen3-Embedding-8B | 32768 tokens | 4096 | Very Slow | Excellent / SOTA | Heavy GPU-oriented retrieval experiments |
 
 ---
 
@@ -372,7 +384,7 @@ self.__sparse_embeddings = FastEmbedSparse(model_name=config.SPARSE_MODEL)
 
 **Why adjust?** Balance between retrieval precision and context richness.
 
-> **💡 Validation Tool:** To avoid trial-and-error, you can use 🐿️[**Chunky**](https://github.com/GiovanniPasq/chunky) to visually inspect how different strategies affect your documents.
+> **Validation tool:** Use 🐿️ [**Chunky**](https://github.com/GiovanniPasq/chunky) to clean Markdown, inspect chunks, compare chunking strategies, and enrich metadata before re-indexing.
 
 **Step 1:** Update chunk sizes in `project/config.py`
 
@@ -459,7 +471,7 @@ TOKEN_GROWTH_FACTOR = 0.9       # Multiplier applied after each compression
 
 ## Observability
 
-Optional tracing with [Langfuse](https://langfuse.com) captures every LLM call, tool invocation, and graph transition  useful for debugging agent behavior, tracking costs, and evaluating retrieval quality.
+Optional tracing with [Langfuse](https://langfuse.com) captures every LLM call, tool invocation, and graph transition. It is useful for debugging agent behavior, tracking costs, and evaluating retrieval quality.
 
 ### Enabling Langfuse
 
@@ -473,7 +485,7 @@ export LANGFUSE_SECRET_KEY=sk-lf-...
 export LANGFUSE_BASE_URL=https://cloud.langfuse.com   # or your self-hosted URL
 ```
 
-4. Run the app normally. Traces appear in your [Langfuse dashboard](https://cloud.langfuse.com/).
+3. Run the app normally. Traces appear in your [Langfuse dashboard](https://cloud.langfuse.com/).
 
 To disable tracing, set `LANGFUSE_ENABLED=false` or leave the variables unset. The application runs identically either way.
 
@@ -490,10 +502,10 @@ For additional details on integrating Langfuse with LangChain or LangGraph, see 
 
 ### Hosting options
 
-- **Langfuse Cloud** — sign up at [cloud.langfuse.com](https://cloud.langfuse.com), free up to 50K observations/month.
+- **Langfuse Cloud** — sign up at [cloud.langfuse.com](https://cloud.langfuse.com) and check the current plan limits there.
 - **Self-hosted** — MIT-licensed, deploy with Docker Compose. See the [official self-hosting docs](https://langfuse.com/self-hosting).
 
-For a detailed comparison of observability platforms (LangSmith, Arize Phoenix, AgentOps, Braintrust, Helicone) and the full self-hosting setup, see [`Observability_Guide.ipynb`](../Observability_Guide.ipynb).
+For a conceptual tracing guide and platform context, see [`notebooks/observability.ipynb`](../notebooks/observability.ipynb).
 
 ---
 
@@ -566,7 +578,7 @@ with gr.Accordion("Advanced Settings", open=False):
 
 ### Docker Deployment
 
-> ⚠️ **System Requirements**: At least 8GB of RAM allocated to Docker. The default Ollama model needs approximately 3.3GB to run.
+> ⚠️ **System Requirements**: At least 8GB of RAM allocated to Docker; 12GB is recommended when indexing with Qwen embeddings and running the default Ollama model locally. The default Ollama model needs approximately 3.3GB to run.
 
 #### Build and Run
 ```bash
@@ -601,7 +613,8 @@ Once running, open `http://localhost:7860`.
 | Issue | Cause | Solution |
 |-------|-------|----------|
 | "Model not found" error | Incorrect model name for provider | Verify `LLM_MODEL` matches provider's API (e.g., `gpt-4o-mini` not `gpt4-mini`) |
-| Low-quality retrieval results | Poor embedding model or chunk configuration | Re-index with better embeddings (e.g., all-mpnet-base-v2) or adjust chunk sizes |
+| Low-quality retrieval results | Poor embedding model or chunk configuration | Re-index with better embeddings or adjust chunk sizes |
+| Vector size mismatch | Existing Qdrant collection was built with a different embedding model | Clear the collection and re-index documents after changing `DENSE_MODEL` |
 | Slow response times | Large embedding model or high `top_k` value | Use smaller embedding models (e.g., all-MiniLM-L6-v2) or reduce `top_k` in retrieval tools |
 | API rate limits exceeded | Too many requests to external provider | Add retry logic with exponential backoff or switch to local Ollama models |
 | Out of memory errors | Large document set or embedding model | Use smaller embeddings, reduce batch size, or enable GPU acceleration |

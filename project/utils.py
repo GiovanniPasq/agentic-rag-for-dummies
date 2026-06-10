@@ -41,6 +41,6 @@ def pdfs_to_markdowns(path_pattern, overwrite: bool = False):
 def estimate_context_tokens(messages: list) -> int:
     try:
         encoding = tiktoken.encoding_for_model("gpt-4")
-    except:
+    except Exception:
         encoding = tiktoken.get_encoding("cl100k_base")
     return sum(len(encoding.encode(str(msg.content))) for msg in messages if hasattr(msg, 'content') and msg.content)

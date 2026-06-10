@@ -28,7 +28,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue?logo=python&logoColor=white" alt="Python"/>
-  <img src="https://img.shields.io/badge/LangGraph-1.1%2B-orange?logo=langchain&logoColor=white" alt="LangGraph"/>
+  <img src="https://img.shields.io/badge/LangGraph-1.2%2B-orange?logo=langchain&logoColor=white" alt="LangGraph"/>
   <img src="https://img.shields.io/badge/Qdrant-vector%20db-DC244C" alt="Qdrant"/>
   <img src="https://img.shields.io/badge/LLM%20Providers-Ollama%20%7C%20OpenAI%20%7C%20Anthropic%20%7C%20Google-purple" alt="LLM Providers"/>
 </p>
@@ -63,6 +63,7 @@ This repository demonstrates how to build an **Agentic RAG (Retrieval-Augmented 
 | ✅ **Self-Correction** | Re-queries automatically if initial results are insufficient |
 | 🗜️ **Context Compression** | Keeps working memory lean across long retrieval loops |
 | 🔍 **Observability** | Track LLM calls, tool usage, and graph execution with Langfuse |
+| 📊 **Evaluation** | Evaluate retrieval and answer quality with RAGAS metrics |
 
 ### 🎯 Two Ways to Use This Repo
 
@@ -72,7 +73,7 @@ Step-by-step tutorial perfect for understanding core concepts. Start here if you
 
 **2️⃣ Building Path: Modular Project**
 
-Flexible architecture where each component can be independently swapped — LLM provider, embedding model, PDF converter, agent workflow. One line to switch from Ollama to Anthropic, OpenAI, or Google.
+Flexible architecture where each component can be independently adapted — LLM provider, embedding model, PDF converter, and agent workflow. The runnable app is Ollama-first, and it can be adapted to any chat model provider supported by LangChain. Examples are included for Anthropic, OpenAI, and Google.
 
 See [Modular Architecture](#modular-architecture) and [Installation & Usage](#installation--usage) to get started.
 
@@ -85,7 +86,7 @@ Before queries can be processed, documents are split twice for optimal retrieval
 - **Parent Chunks**: Large sections based on Markdown headers (H1, H2, H3)
 - **Child Chunks**: Small, fixed-size pieces derived from parents
 
-> 💡 Optional: If you want to visually inspect or edit your chunks before indexing, you can use 🐿️ [**Chunky**](https://github.com/GiovanniPasq/chunky).
+> Optional: 🐿️ [**Chunky**](https://github.com/GiovanniPasq/chunky) is an open-source toolkit for reliable RAG pipelines: convert PDFs to Markdown, clean documents, inspect chunks, compare chunking strategies, and enrich metadata before building the vector store.
 
 This combines the **precision of small chunks** for search with the **contextual richness of large chunks** for answer generation.
 
@@ -111,7 +112,7 @@ Parallel Agent Reasoning → Aggregation → Final Response
 
 ## LLM Provider Configuration
 
-This system is provider-agnostic — it supports any LLM provider available in [LangChain](https://python.langchain.com/docs/integrations/chat/), swappable in a single line. The examples below cover the most common options, but the same pattern applies to any other supported provider.
+This system is provider-agnostic: the runnable app uses Ollama by default, and the chat model initialization can be adapted to any LLM provider available in [LangChain](https://python.langchain.com/docs/integrations/chat/). The examples below cover the most common options, but the same pattern applies to any other supported provider.
 
 > **Note:** Model names change frequently. Always check the official documentation for the latest available models and their identifiers before deploying.
 
@@ -177,7 +178,7 @@ llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
 
 ## Implementation
 
-Additional details, extended explanations, and Langfuse observability (LLM call tracing, tool usage, and graph execution tracking) are available in the **[notebook](notebooks/agentic_rag.ipynb)** and in the full project.
+Additional details, extended explanations, and Langfuse observability (LLM call tracing, tool usage, and graph execution tracking) are available in the **[notebook](notebooks/agentic_rag.ipynb)** and in the full project. The companion **[evaluation notebook](notebooks/evaluation.ipynb)** uses a QA set from `markdown_docs`, saves the agentic RAG outputs, and scores them with direct RAGAS metric calls. For tracing concepts and platform context, see the **[observability notebook](notebooks/observability.ipynb)**.
 
 | Step | Description |
 |------|-------------|
@@ -216,7 +217,7 @@ os.makedirs(PARENT_STORE_PATH, exist_ok=True)
 from langchain_ollama import ChatOllama
 llm = ChatOllama(model="qwen3:4b-instruct-2507-q4_K_M", temperature=0)
 
-dense_embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
+dense_embeddings = HuggingFaceEmbeddings(model_name="Qwen/Qwen3-Embedding-0.6B")
 sparse_embeddings = FastEmbedSparse(model_name="Qdrant/bm25")
 
 client = QdrantClient(path="qdrant_db")
@@ -300,6 +301,15 @@ from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharac
 <summary>Parent & Child chunk processing functions</summary>
 
 ```python
+def merge_metadata(target, source, prepend=False):
+    for key, value in source.items():
+        if key not in target:
+            target[key] = value
+        elif prepend:
+            target[key] = f"{value} -> {target[key]}"
+        else:
+            target[key] = f"{target[key]} -> {value}"
+
 def merge_small_parents(chunks, min_size):
     if not chunks:
         return []
@@ -311,11 +321,7 @@ def merge_small_parents(chunks, min_size):
             current = chunk
         else:
             current.page_content += "\n\n" + chunk.page_content
-            for k, v in chunk.metadata.items():
-                if k in current.metadata:
-                    current.metadata[k] = f"{current.metadata[k]} -> {v}"
-                else:
-                    current.metadata[k] = v
+            merge_metadata(current.metadata, chunk.metadata)
 
         if len(current.page_content) >= min_size:
             merged.append(current)
@@ -324,11 +330,7 @@ def merge_small_parents(chunks, min_size):
     if current:
         if merged:
             merged[-1].page_content += "\n\n" + current.page_content
-            for k, v in current.metadata.items():
-                if k in merged[-1].metadata:
-                    merged[-1].metadata[k] = f"{merged[-1].metadata[k]} -> {v}"
-                else:
-                    merged[-1].metadata[k] = v
+            merge_metadata(merged[-1].metadata, current.metadata)
         else:
             merged.append(current)
 
@@ -357,18 +359,10 @@ def clean_small_chunks(chunks, min_size):
         if len(chunk.page_content) < min_size:
             if cleaned:
                 cleaned[-1].page_content += "\n\n" + chunk.page_content
-                for k, v in chunk.metadata.items():
-                    if k in cleaned[-1].metadata:
-                        cleaned[-1].metadata[k] = f"{cleaned[-1].metadata[k]} -> {v}"
-                    else:
-                        cleaned[-1].metadata[k] = v
+                merge_metadata(cleaned[-1].metadata, chunk.metadata)
             elif i < len(chunks) - 1:
                 chunks[i + 1].page_content = chunk.page_content + "\n\n" + chunks[i + 1].page_content
-                for k, v in chunk.metadata.items():
-                    if k in chunks[i + 1].metadata:
-                        chunks[i + 1].metadata[k] = f"{v} -> {chunks[i + 1].metadata[k]}"
-                    else:
-                        chunks[i + 1].metadata[k] = v
+                merge_metadata(chunks[i + 1].metadata, chunk.metadata, prepend=True)
             else:
                 cleaned.append(chunk)
         else:
@@ -460,6 +454,8 @@ import json
 from typing import List
 from langchain_core.tools import tool
 
+RETRIEVAL_SCORE_THRESHOLD = 0.4
+
 @tool
 def search_child_chunks(query: str, limit: int) -> str:
     """Search for the top K most relevant child chunks.
@@ -469,7 +465,11 @@ def search_child_chunks(query: str, limit: int) -> str:
         limit: Maximum number of results to return
     """
     try:
-        results = child_vector_store.similarity_search(query, k=limit, score_threshold=0.7)
+        results = child_vector_store.similarity_search(
+            query,
+            k=limit,
+            score_threshold=RETRIEVAL_SCORE_THRESHOLD,
+        )
         if not results:
             return "NO_RELEVANT_CHUNKS"
 
@@ -798,7 +798,7 @@ TOKEN_GROWTH_FACTOR = 0.9       # Multiplier applied after each compression
 def estimate_context_tokens(messages: list) -> int:
     try:
         encoding = tiktoken.encoding_for_model("gpt-4")
-    except:
+    except Exception:
         encoding = tiktoken.get_encoding("cl100k_base")
     return sum(len(encoding.encode(str(msg.content))) for msg in messages if hasattr(msg, 'content') and msg.content)
 ```
@@ -899,7 +899,7 @@ def orchestrator(state: AgentState):
     tool_calls = response.tool_calls if hasattr(response, "tool_calls") else []
     return {"messages": [response], "tool_call_count": len(tool_calls) if tool_calls else 0, "iteration_count": 1}
 
-def route_after_orchestrator_call(state: AgentState) -> Literal["tool", "fallback_response", "collect_answer"]:
+def route_after_orchestrator_call(state: AgentState) -> Literal["tools", "fallback_response", "collect_answer"]:
     iteration = state.get("iteration_count", 0)
     tool_count = state.get("tool_call_count", 0)
 
@@ -1166,7 +1166,7 @@ Full documentation in [project/README.md](./project/README.md).
 
 ## Installation & Usage
 
-Sample pdf files can be found here: [javascript](https://www.tutorialspoint.com/javascript/javascript_tutorial.pdf), [blockchain](https://blockchain-observatory.ec.europa.eu/document/download/1063effa-59cc-4df4-aeee-d2cf94f69178_en?filename=Blockchain_For_Beginners_A_EUBOF_Guide.pdf), [microservices](https://cdn.studio.f5.com/files/k6fem79d/production/5e4126e1cefa813ab67f9c0b6d73984c27ab1502.pdf), [fortinet](https://www.commoncriteriaportal.org/files/epfiles/Fortinet%20FortiGate_EAL4_ST_V1.5.pdf(320893)_TMP.pdf).
+Sample pdf files can be found here: [javascript](https://www.tutorialspoint.com/javascript/javascript_tutorial.pdf), [blockchain](https://blockchain-observatory.ec.europa.eu/document/download/1063effa-59cc-4df4-aeee-d2cf94f69178_en?filename=Blockchain_For_Beginners_A_EUBOF_Guide.pdf), [fortinet](https://www.commoncriteriaportal.org/files/epfiles/Fortinet%20FortiGate_EAL4_ST_V1.5.pdf(320893)_TMP.pdf).
 
 ### Option 1: Quickstart Notebook (Recommended for Testing)
 
