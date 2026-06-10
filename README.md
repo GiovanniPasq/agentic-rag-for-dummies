@@ -1172,7 +1172,7 @@ Sample pdf files can be found here: [javascript](https://www.tutorialspoint.com/
 
 **Google Colab:** Click the **Open in Colab** badge at the top of this README, upload your PDFs to a `docs/` folder in the file browser, install dependencies with `pip install -r requirements.txt`, then run all cells top to bottom.
 
-**Local (Jupyter/VSCode):** Optionally create and activate a virtual environment, install dependencies with `pip install -r requirements.txt`, add your PDFs to `docs/`, then run all cells top to bottom.
+**Local (Jupyter/VSCode):** Optionally create and activate a virtual environment, install dependencies with `pip install -r requirements.txt` or `uv pip install -r requirements.txt`, add your PDFs to `docs/`, then run all cells top to bottom.
 
 The chat interface will appear at the end.
 
@@ -1184,16 +1184,14 @@ The chat interface will appear at the end.
 git clone https://github.com/GiovanniPasq/agentic-rag-for-dummies
 cd agentic-rag-for-dummies
 
-# Optional: create and activate a virtual environment
-
-# macOS/Linux
+# Option A: pip
 python -m venv .venv && source .venv/bin/activate
-
-# Windows
-python -m venv .venv && .\.venv\Scripts\activate
-
-# Install packages
 pip install -r requirements.txt
+
+# Option B: uv
+uv venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+uv pip install -r requirements.txt
 ```
 
 #### 2. Run the Application

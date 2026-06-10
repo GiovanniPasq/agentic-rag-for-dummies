@@ -13,10 +13,18 @@ An **Agentic Retrieval-Augmented Generation (RAG)** system built with **LangGrap
 
 ### Installation
 
-Install all required dependencies:
+Install all required dependencies with `pip`:
 
 ```bash
 pip install -r requirements.txt
+```
+
+Or use `uv`:
+
+```bash
+uv venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+uv pip install -r requirements.txt
 ```
 
 ### Running the Application
