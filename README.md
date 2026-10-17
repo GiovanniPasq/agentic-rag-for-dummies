@@ -1416,7 +1416,8 @@ git clone https://github.com/GiovanniPasq/agentic-rag-for-dummies
 cd agentic-rag-for-dummies
 
 # Run the startup script (auto-detects uv or venv, prepares environment & starts app)
-./start.sh
+./start.sh        # Linux / macOS
+start.bat         # Windows (or double-click start.bat)
 ```
 
 #### 2. Manual Setup (Alternative)

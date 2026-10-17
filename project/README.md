@@ -16,7 +16,8 @@ An **Agentic Retrieval-Augmented Generation (RAG)** system built with **LangGrap
 Launch everything with one command (automatically sets up virtual environment with `uv` or standard Python `venv` and starts the app):
 
 ```bash
-./start.sh
+./start.sh        # Linux / macOS
+start.bat         # Windows (or double-click start.bat)
 ```
 
 ### Manual Setup & Run
