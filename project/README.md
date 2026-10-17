@@ -11,27 +11,28 @@ An **Agentic Retrieval-Augmented Generation (RAG)** system built with **LangGrap
 
 ## Quick Start
 
-### Installation
+### Quickstart Script (Recommended)
 
-Install all required dependencies with `pip`:
+Launch everything with one command (automatically sets up virtual environment with `uv` or standard Python `venv` and starts the app):
 
 ```bash
-pip install -r requirements.txt
+./start.sh
 ```
 
-Or use `uv`:
+### Manual Setup & Run
+
+Using `uv` (recommended):
 
 ```bash
-uv venv .venv
+uv run project/app.py
+```
+
+Using standard `pip`:
+
+```bash
+python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
-uv pip install -r requirements.txt
-```
-
-### Running the Application
-
-Start the Gradio interface locally:
-
-```bash
+pip install -r requirements.txt
 python project/app.py
 ```
 

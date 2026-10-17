@@ -1409,24 +1409,27 @@ The chat interface will appear at the end.
 
 ### Option 2: Full Python Project (Recommended for Development)
 
-#### 1. Install Dependencies
+#### 1. Quick Launch (Recommended)
 ```bash
 # Clone the repository
 git clone https://github.com/GiovanniPasq/agentic-rag-for-dummies
 cd agentic-rag-for-dummies
 
-# Option A: pip
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-
-# Option B: uv
-uv venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-uv pip install -r requirements.txt
+# Run the startup script (auto-detects uv or venv, prepares environment & starts app)
+./start.sh
 ```
 
-#### 2. Run the Application
+#### 2. Manual Setup (Alternative)
+
+**Using `uv`:**
 ```bash
+uv run project/app.py
+```
+
+**Using `pip`:**
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
 python project/app.py
 ```
 
